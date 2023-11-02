@@ -29,23 +29,23 @@
 
 # Create AFLPlusPlus library
 add_library(AFLPlusPlus SHARED
-  src/module/AFLCloneMutator.cpp,
-  src/module/AFLDeleteMutator.cpp,
-  src/module/AFLDWIMutator.cpp,
-  src/module/AFLFlip2BitMutator.cpp,
-  src/module/AFLFlip2ByteMutator.cpp,
-  src/module/AFLFlip4BitMutator.cpp,
-  src/module/AFLFlip4ByteMutator.cpp,
-  src/module/AFLFlipBitMutator.cpp,
-  src/module/AFLFlipByteMutator.cpp,
-  src/module/AFLInteresting8Mutator.cpp,
-  src/module/AFLInteresting16Mutator.cpp,
-  src/module/AFLInteresting32Mutator.cpp,
-  src/module/AFLOverwriteCopyMutator.cpp,
-  src/module/AFLOverwriteFixedMutator.cpp,
-  src/module/AFLRandomByteAddSubMutator.cpp,
-  src/module/AFLRandomByteMutator.cpp,
-  src/module/AFLSpliceMutator.cpp,
+  src/module/AFLCloneMutator.cpp
+  src/module/AFLDeleteMutator.cpp
+  src/module/AFLDWIMutator.cpp
+  src/module/AFLFlip2BitMutator.cpp
+  src/module/AFLFlip2ByteMutator.cpp
+  src/module/AFLFlip4BitMutator.cpp
+  src/module/AFLFlip4ByteMutator.cpp
+  src/module/AFLFlipBitMutator.cpp
+  src/module/AFLFlipByteMutator.cpp
+  src/module/AFLInteresting8Mutator.cpp
+  src/module/AFLInteresting16Mutator.cpp
+  src/module/AFLInteresting32Mutator.cpp
+  src/module/AFLOverwriteCopyMutator.cpp
+  src/module/AFLOverwriteFixedMutator.cpp
+  src/module/AFLRandomByteAddSubMutator.cpp
+  src/module/AFLRandomByteMutator.cpp
+  src/module/AFLSpliceMutator.cpp
   src/module/AFLWordAddSubMutator.cpp
 )
 
