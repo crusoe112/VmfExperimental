@@ -62,6 +62,7 @@ target_include_directories(AFLPlusPlus PRIVATE
   ${VMF_INSTALL}/include
   ${VMF_INSTALL}/include/vmf
   ${VMF_INSTALL}/include/plog
+  ${VMF_INSTALL}/include/AFL-Legacy
   ${PROJECT_SOURCE_DIR}/src/module
 )
 
