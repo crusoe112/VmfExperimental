@@ -27,30 +27,45 @@
 # @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
 #===============================================================================
 
-cmake_minimum_required(VERSION 3.10.2)
-set(CMAKE_VERBOSE_MAKEFILE ON)
+# Create AFLPlusPlus library
+add_library(AFLPlusPlus SHARED
+  src/module/AFLCloneMutator.cpp,
+  src/module/AFLDeleteMutator.cpp,
+  src/module/AFLDWIMutator.cpp,
+  src/module/AFLFlip2BitMutator.cpp,
+  src/module/AFLFlip2ByteMutator.cpp,
+  src/module/AFLFlip4BitMutator.cpp,
+  src/module/AFLFlip4ByteMutator.cpp,
+  src/module/AFLFlipBitMutator.cpp,
+  src/module/AFLFlipByteMutator.cpp,
+  src/module/AFLInteresting8Mutator.cpp,
+  src/module/AFLInteresting16Mutator.cpp,
+  src/module/AFLInteresting32Mutator.cpp,
+  src/module/AFLOverwriteCopyMutator.cpp,
+  src/module/AFLOverwriteFixedMutator.cpp,
+  src/module/AFLRandomByteAddSubMutator.cpp,
+  src/module/AFLRandomByteMutator.cpp,
+  src/module/AFLSpliceMutator.cpp,
+  src/module/AFLWordAddSubMutator.cpp
+)
 
-# Specify project related variables.
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_COMPILER g++)
+# Build-time dependencies for AFLPlusPlus
+link_directories(AFLPlusPlus PRIVATE
+)
 
-project(VmfExtension VERSION 1.0 LANGUAGES CXX)
+# Build-time dependencies for AFLPlusPlus
+target_link_libraries(AFLPlusPlus PRIVATE
+)
 
-# Check that VMF_INSTALL directory is properly defined, exit with error if not
-if (NOT IS_DIRECTORY ${VMF_INSTALL})
-  message( FATAL_ERROR "CMake variable VMF_INSTALL must be defined as full path to a VMF install tree, please use cmake -DVMF_INSTALL=/full/path/to/VMF" )
-endif()
+# Build-time dependencies for AFLPlusPlus
+target_include_directories(AFLPlusPlus PRIVATE
+  ${VMF_INSTALL}/include
+  ${VMF_INSTALL}/include/vmf
+  ${VMF_INSTALL}/include/plog
+  ${PROJECT_SOURCE_DIR}/src/module
+)
 
-# Bring in VMF support variables and utility functions
-list(APPEND CMAKE_MODULE_PATH "${VMF_INSTALL}/cmake")
-include(vmf_imports)
-include(vmf)
-
-# ---- TAILOR SPECIFIC EXTENSION PACKAGES HERE ----
-
-# Add in extension package directories
-add_subdirectory(${PROJECT_SOURCE_DIR}/AFLPlusPlus)
-add_subdirectory(${PROJECT_SOURCE_DIR}/Radamsa)
-add_subdirectory(${PROJECT_SOURCE_DIR}/SamplePackage)
+# Install AFLPlusPlus library in VMF plugins directory
+install(TARGETS AFLPlusPlus
+  LIBRARY DESTINATION "${VMF_INSTALL}/plugins")
 
