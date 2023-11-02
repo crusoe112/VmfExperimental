@@ -31,7 +31,7 @@
 add_library(AFLPlusPlus SHARED
   src/module/AFLCloneMutator.cpp
   src/module/AFLDeleteMutator.cpp
-  src/module/AFLDWIMutator.cpp
+  src/module/AFLDWordMutator.cpp
   src/module/AFLFlip2BitMutator.cpp
   src/module/AFLFlip2ByteMutator.cpp
   src/module/AFLFlip4BitMutator.cpp
