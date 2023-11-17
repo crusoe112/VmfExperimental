@@ -51,12 +51,10 @@ add_library(AFLPlusPlus SHARED
 
 # Build-time dependencies for AFLPlusPlus
 link_directories(AFLPlusPlus PRIVATE
-  ${VMF_INSTALL}/include/vmf/submodules/LibAFL-legacy
 )
 
 # Build-time dependencies for AFLPlusPlus
 target_link_libraries(AFLPlusPlus PRIVATE
-  ${VMF_INSTALL}/include/vmf/submodules/LibAFL-legacy
 )
 
 # Build-time dependencies for AFLPlusPlus
@@ -64,7 +62,7 @@ target_include_directories(AFLPlusPlus PRIVATE
   ${VMF_INSTALL}/include
   ${VMF_INSTALL}/include/vmf
   ${VMF_INSTALL}/include/plog
-  ${VMF_INSTALL}/include/vmf/submodules/LibAFL-legacy
+  ${VMF_INSTALL}/../../vmf/external/bookworm/include/LibAFL-legacy
   ${PROJECT_SOURCE_DIR}/src/module
 )
 
