@@ -32,20 +32,17 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
-#include "rand.h"
 
 // external project includes.
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-/*
 extern "C" {
     #include "LibAFL-legacy/rand.h"
 }
-*/
 #pragma GCC diagnostic pop
 
-namespace vader::aflplusplus::mutations
+namespace vader::aflplusplus::mutations::AFLCloneMutator
 {
 /**
  * @brief This mutator inserts a random number of additional cloned bytes.
