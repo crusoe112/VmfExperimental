@@ -64,10 +64,8 @@ target_include_directories(AFLPlusPlus PRIVATE
   ${VMF_INSTALL}/include/vmf
   ${VMF_INSTALL}/include/plog
   ${PROJECT_SOURCE_DIR}/src/module
+  /root/VaderModularFuzzer/vmf/external/bookworm/include/LibAFL-legacy
 )
-
-add_subdirectory(AFLPlusPlus PRIVATE
-  ${VMF_INSTALL}../../external)
 
 # Install AFLPlusPlus library in VMF plugins directory
 install(TARGETS AFLPlusPlus
