@@ -38,7 +38,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 extern "C" {
-    //#include "LibAFL-legacy/rand.h"
     #include "/root/VaderModularFuzzer/vmf/external/bookworm/include/LibAFL-legacy/rand.h"
 }
 #pragma GCC diagnostic pop
