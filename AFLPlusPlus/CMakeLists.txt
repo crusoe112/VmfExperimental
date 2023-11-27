@@ -63,9 +63,16 @@ target_include_directories(AFLPlusPlus PRIVATE
   ${VMF_INSTALL}/include
   ${VMF_INSTALL}/include/vmf
   ${VMF_INSTALL}/include/plog
-  ${VMF_INSTALL}/include/LibAFL-legacy
   ${PROJECT_SOURCE_DIR}/src/module
-  /root/VaderModularFuzzer/vmf/external/bookworm/include/LibAFL-legacy
+)
+
+ExternalProject_add(LibAFL_legacy
+    SOURCE_DIR ${SUBMODULES_DIR}/LibAFL-legacy
+    BUILD_IN_SOURCE 1
+    BUILD_COMMAND make libafl.so
+    CONFIGURE_COMMAND ""
+    INSTALL_COMMAND ${PROJECT_SOURCE_DIR}/cmake/install-LibAFL-legacy ${PROJECT_SOURCE_DIR} ${INSTALL_DIR}
+    # BUILD_ALWAYS 1
 )
 
 # Install AFLPlusPlus library in VMF plugins directory
