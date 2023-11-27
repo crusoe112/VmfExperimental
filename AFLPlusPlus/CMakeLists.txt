@@ -56,6 +56,7 @@ link_directories(AFLPlusPlus PRIVATE
 # Build-time dependencies for AFLPlusPlus
 target_link_libraries(AFLPlusPlus PRIVATE
   ${VMF_INSTALL}/bin/vader
+  ${VMF_INSTALL}/../../submodules/LibAFL-legacy
 )
 
 # Build-time dependencies for AFLPlusPlus
@@ -64,15 +65,6 @@ target_include_directories(AFLPlusPlus PRIVATE
   ${VMF_INSTALL}/include/vmf
   ${VMF_INSTALL}/include/plog
   ${PROJECT_SOURCE_DIR}/src/module
-)
-
-ExternalProject_add(LibAFL_legacy
-    SOURCE_DIR ${SUBMODULES_DIR}/LibAFL-legacy
-    BUILD_IN_SOURCE 1
-    BUILD_COMMAND make libafl.so
-    CONFIGURE_COMMAND ""
-    INSTALL_COMMAND ${PROJECT_SOURCE_DIR}/cmake/install-LibAFL-legacy ${PROJECT_SOURCE_DIR} ${INSTALL_DIR}
-    # BUILD_ALWAYS 1
 )
 
 # Install AFLPlusPlus library in VMF plugins directory
