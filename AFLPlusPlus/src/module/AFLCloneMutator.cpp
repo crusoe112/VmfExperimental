@@ -53,7 +53,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vader:aflplusplus:mutations:AFLCloneMutator;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLCloneMutator);
