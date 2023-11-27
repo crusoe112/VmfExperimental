@@ -66,6 +66,9 @@ target_include_directories(AFLPlusPlus PRIVATE
   ${PROJECT_SOURCE_DIR}/src/module
 )
 
+add_subdirectory(AFLPlusPlus PRIVATE
+  ${VMF_INSTALL}../../external)
+
 # Install AFLPlusPlus library in VMF plugins directory
 install(TARGETS AFLPlusPlus
   LIBRARY DESTINATION "${VMF_INSTALL}/plugins")
