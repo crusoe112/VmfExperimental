@@ -32,7 +32,7 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
-#include "LibAFL-legacy/rand.h"
+#include "rand.h"
 
 // external project includes.
 
