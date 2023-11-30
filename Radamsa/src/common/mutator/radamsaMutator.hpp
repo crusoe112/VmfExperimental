@@ -69,6 +69,7 @@ namespace vader::modules::radamsa
  */
 class RadamsaMutator: public MutatorModule,
                       public vader::radamsa::mutations::ByteMutations,
+                      public vader::radamsa::mutations::ByteSequenceMutations,
                       public vader::radamsa::mutations::LineMutations
 {
 public:
