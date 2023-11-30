@@ -30,6 +30,7 @@
 # Create Radamsa library
 add_library(Radamsa SHARED
   src/common/mutator/byteMutations.cpp
+  src/common/mutator/byteSequenceMutations.cpp
   src/common/mutator/radamsaMutator.cpp
   src/common/mutator/lineMutations.cpp
 )

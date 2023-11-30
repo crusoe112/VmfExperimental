@@ -30,15 +30,13 @@
 #pragma once
 
 // VMF Includes
-#include "MutatorModule.hpp"
+
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
-#include "byteMutations.hpp"
-#include "byteSequenceMutations.hpp"
-#include "lineMutations.hpp"
+#include "mutationBase.hpp"
 
 
-namespace vader::modules::radamsa
+namespace vader::radamsa::mutations
 {
 /**
  * @brief This module is draws heavily upon the libAFL mutator.c
@@ -67,70 +65,27 @@ namespace vader::modules::radamsa
  *  customized fuzzers for a specific target while taking advantage of
  *  a lot of features that AFL++ already provides.
  */
-class RadamsaMutator: public MutatorModule,
-                      public vader::radamsa::mutations::ByteMutations,
-                      public vader::radamsa::mutations::LineMutations
+class ByteSequenceMutations: public vader::radamsa::mutations::MutationBase
 {
 public:
-    enum class AlgorithmType : uint8_t
-    {
-        ByteMutations_DropByte = 0u,
-        ByteMutations_FlipByte,
-        ByteMutations_InsertByte,
-        ByteMutations_RepeatByte,
-        ByteMutations_PermuteByte,
-        ByteMutations_IncrementByte,
-        ByteMutations_DecrementByte,
-        ByteMutations_RandomizeByte,
-        ByteSequenceMutations_RepeatByteSequence,
-        LineMutations_DeleteLine,
-        LineMutations_DeleteSequentialLines,
-        LineMutations_DuplicateLine,
-        LineMutations_CopyLineCloseBy,
-        LineMutations_RepeatLine,
-        LineMutations_SwapLine,
-        Unknown
-    };
+    ByteSequenceMutations() = delete;
+    virtual ~ByteSequenceMutations() = default;
 
-    RadamsaMutator() = delete;
-    virtual ~RadamsaMutator() = default;
+    ByteSequenceMutations(const ByteSequenceMutations&) = delete;
+    ByteSequenceMutations(ByteSequenceMutations&&) = delete;
 
-    RadamsaMutator(std::string name) noexcept : MutatorModule{name},
-                                                vader::radamsa::mutations::ByteMutations{RANDOM_NUMBER_GENERATOR_},
-                                                vader::radamsa::mutations::ByteSequenceMutations{RANDOM_NUMBER_GENERATOR_},
-                                                vader::radamsa::mutations::LineMutations{RANDOM_NUMBER_GENERATOR_}
-                                                
-    {}
+    ByteSequenceMutations& operator=(const ByteSequenceMutations&) = delete;
+    ByteSequenceMutations& operator=(ByteSequenceMutations&&) = delete;
 
-    /////////////////////////////
-    // MutatorModule Interface //
-    /////////////////////////////
-    virtual void init(ConfigInterface& config) { SetAlgorithmType(stringToType(config.getStringParam(getModuleName(), "algType"))); }
-
-    virtual void registerStorageNeeds(StorageRegistry& registry);
-    
-    virtual StorageEntry* createTestCase(StorageModule& storage, StorageEntry* baseEntry);
-
-    static Module* build(std::string name);
+    void RepeatByteSequence(
+            StorageEntry* newEntry,
+            const size_t originalBufferSize,
+            const char* originalBuffer,
+            const size_t minimumSeedIndex,
+            const int testCaseKey);
 
 protected:
-    ////////////////////////////
-    // RadamsaMutator Utility //
-    ////////////////////////////
-    void SetAlgorithmType(const AlgorithmType algorithmType);
-
-    AlgorithmType GetAlgorithmType() const noexcept { return algorithmType_; }
-
-    static AlgorithmType stringToType(std::string type);
-
-    static constexpr int INVALID_TEST_CASE_KEY_{std::numeric_limits<int>::min()};
-    static constexpr int INVALID_NORMAL_TAG_{INVALID_TEST_CASE_KEY_};
-
-    int testCaseKey_{INVALID_TEST_CASE_KEY_};
-    int normalTag_{INVALID_NORMAL_TAG_};
-    AlgorithmType algorithmType_{AlgorithmType::ByteMutations_DropByte};
-
-    std::default_random_engine RANDOM_NUMBER_GENERATOR_;
+    ByteSequenceMutations(std::default_random_engine& randomNumberGenerator) : MutationBase{randomNumberGenerator} {}
 
 private:
 };

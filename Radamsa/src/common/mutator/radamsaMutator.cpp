@@ -71,6 +71,7 @@ void vader::modules::radamsa::RadamsaMutator::SetAlgorithmType(const AlgorithmTy
         case AlgorithmType::ByteMutations_IncrementByte:
         case AlgorithmType::ByteMutations_DecrementByte:
         case AlgorithmType::ByteMutations_RandomizeByte:
+        case AlgorithmType::ByteSequenceMutations_RepeatByteSequence:
         case AlgorithmType::LineMutations_DeleteLine:
         case AlgorithmType::LineMutations_DeleteSequentialLines:
         case AlgorithmType::LineMutations_DuplicateLine:
@@ -151,6 +152,10 @@ vader::StorageEntry* vader::modules::radamsa::RadamsaMutator::createTestCase(Sto
         RandomizeByte(newEntry, size, buffer, minimumSeedIndex, testCaseKey_);
         
         break;
+    case AlgorithmType::ByteSequenceMutations_RepeatByteSequence:
+        RepeatByteSequence(newEntry, size, buffer, minimumSeedIndex, testCaseKey_);
+        
+        break;
     case AlgorithmType::LineMutations_DeleteLine:
         DeleteLine(newEntry, size, buffer, minimumSeedIndex, testCaseKey_);
         
@@ -202,6 +207,8 @@ vader::modules::radamsa::RadamsaMutator::AlgorithmType vader::modules::radamsa::
         return  AlgorithmType::ByteMutations_DecrementByte;
     else if(type.compare("ByteMutations_RandomizeByte") == 0)
         return AlgorithmType::ByteMutations_RandomizeByte;
+    else if(type.compare("ByteSequenceMutations_RepeatByteSequence") == 0)
+        return AlgorithmType::ByteSequenceMutations_RepeatByteSequence;
     else if(type.compare("LineMutations_DeleteLine") == 0)
         return AlgorithmType::LineMutations_DeleteLine;
     else if(type.compare("LineMutations_DeleteSequentialLines") == 0)
