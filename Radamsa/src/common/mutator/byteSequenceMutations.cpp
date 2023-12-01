@@ -130,3 +130,67 @@ void vader::radamsa::mutations::ByteSequenceMutations::RepeatByteSequence(
         }
     }
 }
+
+void vader::radamsa::mutations::ByteSequenceMutations::DeleteByteSequence(
+                                                    StorageEntry* newEntry,
+                                                    const size_t originalSize,
+                                                    const char* originalBuffer,
+                                                    const size_t minimumSeedIndex,
+                                                    const int testCaseKey)
+{
+    // Consume the original buffer by repeating a sequence of bytes a random number of times and appending a null-terminator to the end.
+
+    constexpr size_t minimumSize{2u};
+
+    if (originalSize < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+
+    if (minimumSeedIndex > originalSize - 2u)
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    if (originalBuffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    // The new buffer size will contain a random number of additional elements since we are repeating a random byte.
+    // Furthermore, it will contain one more element since we are appending a null-terminator to the end.
+
+    const size_t lower{0u};
+    const size_t upper{originalSize - 1u};
+    const size_t maximumRandomIndexValue{originalSize - minimumSeedIndex};
+
+    // Select a random index from which the new bytes will be repeated.
+    const size_t randomByteSequenceStartIndex{
+                                    std::clamp(
+                                            GetRandomValueWithinBounds(
+                                                                    lower,
+                                                                    maximumRandomIndexValue - 1u) + minimumSeedIndex,
+                                                                    lower,
+                                                                    upper)};
+    // Get random end index
+    const size_t randomByteSequenceDeleteLength{
+                                    std::clamp(
+                                            GetRandomValueWithinBounds(
+                                                                    1u,
+                                                                    upper - randomByteSequenceStartIndex) + randomByteSequenceStartIndex,
+                                                                    lower,
+                                                                    upper)};
+    const size_t newBufferSize{originalSize - randomByteSequenceDeleteLength + 1u};
+
+    // Allocate the new buffer and set it's elements to zero.
+
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, static_cast<int>(newBufferSize))};
+    memset(newBuffer, 0u, newBufferSize);
+
+    // Copy data from the original buffer into the new buffer, but delete the target byte sequence.
+    // The last element in the new buffer is skipped since it was implicitly set to zero during allocation.
+    for (size_t sourceIndex{0u}, destinationIndex{0u}; sourceIndex < originalSize; ++sourceIndex)
+    {
+        // Skip the byte within the deleted sequence
+        if (sourceIndex < randomByteSequenceStartIndex || sourceIndex >= randomByteSequenceStartIndex + randomByteSequenceDeleteLength)
+        {
+            // Copy original byte
+            newBuffer[destinationIndex] = originalBuffer[sourceIndex];
+            ++destinationIndex;
+        }
+    }
+}

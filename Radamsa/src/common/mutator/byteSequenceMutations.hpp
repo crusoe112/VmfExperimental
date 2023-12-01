@@ -83,6 +83,12 @@ public:
             const char* originalBuffer,
             const size_t minimumSeedIndex,
             const int testCaseKey);
+    void DeleteByteSequence(
+            StorageEntry* newEntry,
+            const size_t originalBufferSize,
+            const char* originalBuffer,
+            const size_t minimumSeedIndex,
+            const int testCaseKey);
 
 protected:
     ByteSequenceMutations(std::default_random_engine& randomNumberGenerator) : MutationBase{randomNumberGenerator} {}

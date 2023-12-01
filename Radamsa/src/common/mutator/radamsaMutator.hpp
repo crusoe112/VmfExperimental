@@ -84,6 +84,7 @@ public:
         ByteMutations_DecrementByte,
         ByteMutations_RandomizeByte,
         ByteSequenceMutations_RepeatByteSequence,
+        ByteSequenceMutations_DeleteByteSequence,
         LineMutations_DeleteLine,
         LineMutations_DeleteSequentialLines,
         LineMutations_DuplicateLine,
