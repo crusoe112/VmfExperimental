@@ -91,6 +91,7 @@ public:
         LineMutations_CopyLineCloseBy,
         LineMutations_RepeatLine,
         LineMutations_SwapLine,
+        LineMutations_PermuteLine,
         Unknown
     };
 

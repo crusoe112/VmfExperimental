@@ -798,13 +798,13 @@ size_t vader::radamsa::mutations::LineMutations::GetRandomN_Bit(const size_t n)
 }
 
 void vader::radamsa::mutations::LineMutations::PermuteLine(
-                                                        StorageEntry* newEntry,
-                                                        const size_t originalSize,
-                                                        const char* originalBuffer,
-                                                        const size_t characterIndex,
-                                                        const int testCaseKey)
+    StorageEntry* newEntry,
+    const size_t originalSize,
+    const char* originalBuffer,
+    const size_t characterIndex,
+    const int testCaseKey)
 {
-    // Consume the original buffer by copying a line to a random location and appending a null-terminator to the end.
+    // Consume the original buffer by permuting a random contiguous sublist of values within each line.
 
     constexpr size_t minimumSize{1u};
 
@@ -818,10 +818,7 @@ void vader::radamsa::mutations::LineMutations::PermuteLine(
         throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
 
     const size_t numberOfLinesAfterIndex{
-                                    GetNumberOfLinesAfterIndex(
-                                                        originalBuffer,
-                                                        originalSize,
-                                                        characterIndex)};
+        GetNumberOfLinesAfterIndex(originalBuffer, originalSize, characterIndex)};
 
     if (IsBinarish(originalBuffer, originalSize))
     {
@@ -837,69 +834,46 @@ void vader::radamsa::mutations::LineMutations::PermuteLine(
     }
     else
     {
-        auto getLineData{
-                    [&](const char* const buffer, const size_t size, const size_t numberOfLinesAfterIndex) -> std::vector<Line>
-                    {
-                        std::vector<Line> lineData;
+        auto getLineData = [&](const char* buffer, size_t size, size_t numberOfLinesAfterIndex) -> std::vector<Line> {
+            std::vector<Line> lineData;
+            lineData.reserve(numberOfLinesAfterIndex);
 
-                        lineData.reserve(numberOfLinesAfterIndex);
+            for (size_t it{0u}; it < numberOfLinesAfterIndex; ++it) {
+                lineData.emplace_back(GetLineData(buffer, size, it, numberOfLinesAfterIndex));
+            }
 
-                        for(size_t it{0u}; it < numberOfLinesAfterIndex; ++it)
-                        {
-                            lineData.emplace_back(
-                                            GetLineData(
-                                                    buffer,
-                                                    size,
-                                                    it,
-                                                    numberOfLinesAfterIndex));                    
-                        }
+            return lineData;
+        };
 
-                        return lineData;
-                    }};
-
-        // Select random line to copy from/to.
+        // Select random line to permute.
 
         constexpr size_t minimumRandomLineOffset{0u};
 
         const size_t randomStartLineIndex{
-                                    (numberOfLinesAfterIndex <= 3u) ?
-                                    (GetRandomValueWithinBounds(
-                                                            minimumRandomLineOffset,
-                                                            numberOfLinesAfterIndex - 1u)) :
-                                    (GetRandomValueWithinBounds(
-                                                            minimumRandomLineOffset,
-                                                            numberOfLinesAfterIndex - 4u))}; // numlines - 3
+            (numberOfLinesAfterIndex <= 3u) ?
+            (GetRandomValueWithinBounds(minimumRandomLineOffset, numberOfLinesAfterIndex - 1u)) :
+            (GetRandomValueWithinBounds(minimumRandomLineOffset, numberOfLinesAfterIndex - 4u))}; // numlines - 3
 
         const size_t firstNumberOfRandomLinePermutations{
-                                                    GetRandomValueWithinBounds(
-                                                                        minimumRandomLineOffset,
-                                                                        numberOfLinesAfterIndex - randomStartLineIndex - 1u) + 2u};
+            GetRandomValueWithinBounds(minimumRandomLineOffset, numberOfLinesAfterIndex - randomStartLineIndex - 1u) + 2u};
 
         constexpr size_t maximumValue{10u};
         const size_t secondNumberOfRandomLinePermutations{GetRandomLogValue(maximumValue)};
 
         constexpr size_t lhs{2u};
         const size_t totalNumberOfRandomLinePermutations{
-                                                    std::max<size_t>(
-                                                                    lhs,
-                                                                    std::min(
-                                                                        firstNumberOfRandomLinePermutations,
-                                                                        secondNumberOfRandomLinePermutations))};
+            std::max<size_t>(lhs, std::min(firstNumberOfRandomLinePermutations, secondNumberOfRandomLinePermutations))};
 
         const std::vector<Line> lineData{
-                                    getLineData(
-                                            originalBuffer,
-                                            originalSize,
-                                            numberOfLinesAfterIndex)};
+            getLineData(originalBuffer, originalSize, numberOfLinesAfterIndex)};
 
-        auto lineList{
-                LineList{
-                    originalBuffer,
-                    lineData}};
+        auto lineList = LineList{originalBuffer, lineData};
 
-        for (size_t permutationLenght{totalNumberOfRandomLinePermutations}, startLineIndex{randomStartLineIndex}; permutationLenght != 1u; permutationLenght--, startLineIndex++)
-        {
-            const size_t randomLineIndex{GetRandomValueWithinBounds(0u, permutationLenght) + randomStartLineIndex};
+        // Perform line permutations
+        for (size_t permutationLength{totalNumberOfRandomLinePermutations}, startLineIndex{randomStartLineIndex};
+             permutationLength != 1u;
+             permutationLength--, startLineIndex++) {
+            const size_t randomLineIndex{GetRandomValueWithinBounds(0u, permutationLength) + randomStartLineIndex};
 
             std::swap(lineList.Data[randomStartLineIndex], lineList.Data[randomLineIndex]);
         }
@@ -907,24 +881,25 @@ void vader::radamsa::mutations::LineMutations::PermuteLine(
         // The new buffer will be one line larger than the original buffer;
         // additionally, it will contain one additional byte since a null-terminator will be appended to the end.
 
-        const size_t newBufferSize{lineList.Capacity + 1u};
+        const size_t newBufferSize{originalSize + 1u};
 
-        // Allocate the new buffer and set it's elements to zero.
+        // Allocate the new buffer and set its elements to zero.
 
         char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
         memset(newBuffer, 0u, newBufferSize);
 
-        for (size_t it{0u}, destinationIndex{0u}; it < lineList.NumberOfElements; ++it)
-        {
+        // Copy data from the original buffer into the new buffer, including the permuted lines.
+        // The last element in the new buffer is skipped since it was implicitly set to zero during allocation.
+
+        for (size_t it{0u}, destinationIndex{0u}; it < lineList.NumberOfElements; ++it) {
             const size_t numberOfBytes{lineList.Data[it].Size};
 
             const char* const source{lineList.Data[it].Data.get()};
             char* destination{&newBuffer[destinationIndex]};
-            
+
             memcpy(destination, source, numberOfBytes);
 
             destinationIndex += lineList.Data[it].Size;
-            std::cout << "\ntest!!!";
         }
     }
 }

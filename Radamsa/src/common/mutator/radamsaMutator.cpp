@@ -78,7 +78,8 @@ void vader::modules::radamsa::RadamsaMutator::SetAlgorithmType(const AlgorithmTy
         case AlgorithmType::LineMutations_DuplicateLine:
         case AlgorithmType::LineMutations_CopyLineCloseBy:
         case AlgorithmType::LineMutations_RepeatLine:
-        case AlgorithmType::LineMutations_SwapLine: // Intentional Fallthrough
+        case AlgorithmType::LineMutations_SwapLine:
+        case AlgorithmType::LineMutations_PermuteLine: // Intentional Fallthrough
             algorithmType_ = algorithmType;
 
             break;
@@ -185,6 +186,10 @@ vader::StorageEntry* vader::modules::radamsa::RadamsaMutator::createTestCase(Sto
         SwapLine(newEntry, size, buffer, minimumSeedIndex, testCaseKey_);
         
         break;
+    case AlgorithmType::LineMutations_PermuteLine:
+        PermuteLine(newEntry, size, buffer, minimumSeedIndex, testCaseKey_);
+        
+        break;
     default:
         throw RuntimeException("Invalid RadamsaMutator algorithm type", RuntimeException::UNEXPECTED_ERROR);
 
@@ -228,6 +233,8 @@ vader::modules::radamsa::RadamsaMutator::AlgorithmType vader::modules::radamsa::
         return AlgorithmType::LineMutations_RepeatLine;
     else if(type.compare("LineMutations_SwapLine") == 0)
         return AlgorithmType::LineMutations_SwapLine;
+    else if(type.compare("LineMutations_PermuteLine") == 0)
+        return AlgorithmType::LineMutations_PermuteLine;
     else
         return AlgorithmType::Unknown;
 }
