@@ -374,6 +374,13 @@ public:
             const size_t characterIndex,
             const int testCaseKey);
 
+    void PermuteLine(
+                StorageEntry* newEntry,
+                const size_t originalSize,
+                const char* originalBuffer,
+                const size_t characterIndex,
+                const int testCaseKey);
+
 protected:
     LineMutations(std::default_random_engine& randomNumberGenerator) : MutationBase{randomNumberGenerator} {}
 
@@ -398,14 +405,6 @@ protected:
 
 private:
     // Experimental and to be implemented in the next release cycle.
-
-    void PermuteLine(
-                StorageEntry* newEntry,
-                const size_t originalSize,
-                const char* originalBuffer,
-                const size_t characterIndex,
-                const int testCaseKey);
-
     bool Rad_LineInsElsewhere(const size_t index);
 
     bool Rad_LineReplaceElsewhere(const size_t index);
