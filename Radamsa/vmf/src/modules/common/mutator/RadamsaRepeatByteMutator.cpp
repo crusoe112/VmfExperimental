@@ -66,7 +66,7 @@ void RadamsaRepeatByteMutator::init(ConfigInterface& config)
  */
 RadamsaRepeatByteMutator::RadamsaRepeatByteMutator(std::string name) : MutatorModule(name)
 {
-    rand.randInit();
+    // rand->randInit();
 }
 
 /**
@@ -125,7 +125,7 @@ void RadamsaRepeatByteMutator::mutateTestCase(StorageModule& storage, StorageEnt
     const size_t maximumRandomIndexValue{originalSize - minimumSeedIndex};
     const size_t randomByteRepetitionIndex{
                                     std::clamp(
-                                        rand.randBetween(
+                                        rand->randBetween(
                                             lower,
                                             maximumRandomIndexValue) + minimumSeedIndex,
                                         lower,

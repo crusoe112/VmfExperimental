@@ -52,6 +52,6 @@ class RadamsaDropByteMutator: public MutatorModule, public MutationBase
         virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
 
     private:
-        VmfRand rand;
+        VmfRand* rand = VmfRand::getInstance();
 };
 }
