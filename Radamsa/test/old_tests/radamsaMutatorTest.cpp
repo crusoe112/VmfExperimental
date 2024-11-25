@@ -34,7 +34,7 @@
 // VMF Includes
 #include "radamsaMutatorTest.hpp"
 
-namespace vader::test::modules::radamsa
+namespace vmf::test::modules::radamsa
 {
 TEST_F(UninitializedRadamsaMutatorTest, TestDefaultConstructor)
 {

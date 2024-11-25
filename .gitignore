@@ -5,6 +5,7 @@
 *.obj
 *.*~
 *.exe
+*.swp
 */VaderWin/.vs/*
 out/
 output/

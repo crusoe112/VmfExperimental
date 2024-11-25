@@ -52,4 +52,4 @@ include(vmf)
 # Add in extension package directories
 add_subdirectory(${PROJECT_SOURCE_DIR}/Radamsa/vmf/src)
 add_subdirectory(${PROJECT_SOURCE_DIR}/SamplePackage/vmf/src)
-
+add_subdirectory(${PROJECT_SOURCE_DIR}/Radamsa/test)

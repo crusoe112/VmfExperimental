@@ -54,7 +54,10 @@ RUN set -ex \
     && make -j \
     && make install \
     && set +ex
-    
+
+# Set VMF_INSTALL environment variable
+ENV VMF_INSTALL=/usr/local
+
 # Copy, build, install VmfExperimental
 COPY . /usr/local/src/VmfExperimental
 
