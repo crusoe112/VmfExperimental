@@ -102,7 +102,7 @@ TEST_F(RadamsaInsertByteMutatorTest, TestBufferSize)
   EXPECT_EQ(baseEntry->getBufferSize(testCaseKey) + 2, modEntry->getBufferSize(testCaseKey));
 }
 
-TEST_F(RadamsaInsertByteMutatorTest, TestByteIncremented)
+TEST_F(RadamsaInsertByteMutatorTest, TestByteInserted)
 {
   StorageEntry* baseEntry = storage->createNewEntry();
   StorageEntry* modEntry = storage->createNewEntry();
