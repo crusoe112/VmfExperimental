@@ -95,3 +95,24 @@ TEST_F(RadamsaFlipByteMutatorTest, TestBufferSize)
 
   EXPECT_EQ(baseEntry->getBufferSize(testCaseKey)+1, modEntry->getBufferSize(testCaseKey));
 }
+
+TEST_F(RadamsaFlipByteMutatorTest, TestByteFlipped)
+{
+  StorageEntry* baseEntry = storage->createNewEntry();
+  StorageEntry* modEntry = storage->createNewEntry();
+
+  char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
+  buff[0] = '4';
+
+  try{
+      theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+  } 
+  catch (BaseException e)
+  {
+    FAIL() << "Exception thrown: " << e.getReason();
+  }
+
+  char* modBuff = modEntry->getBufferPointer(testCaseKey);
+  char expected = buff[0] ^ 0b10; // 0b10 is the mask when using the default seed
+  EXPECT_EQ(modBuff[0], expected);
+}
