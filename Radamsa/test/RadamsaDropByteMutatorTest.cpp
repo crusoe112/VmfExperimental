@@ -95,3 +95,23 @@ TEST_F(RadamsaDropByteMutatorTest, TestBufferSize)
 
   EXPECT_EQ(baseEntry->getBufferSize(testCaseKey), modEntry->getBufferSize(testCaseKey));
 }
+
+TEST_F(RadamsaDropByteMutatorTest, TestByteDropped)
+{
+  StorageEntry* baseEntry = storage->createNewEntry();
+  StorageEntry* modEntry = storage->createNewEntry();
+
+  char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
+  buff[0] = '4';
+
+  try{
+      theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+  } 
+  catch (BaseException e)
+  {
+    FAIL() << "Exception thrown: " << e.getReason();
+  }
+
+  char* modBuff = modEntry->getBufferPointer(testCaseKey);
+  EXPECT_EQ(modBuff[0], '\0');
+}
