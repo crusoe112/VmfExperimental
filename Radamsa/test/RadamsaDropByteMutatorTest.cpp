@@ -1,9 +1,37 @@
+/* =============================================================================
+ * Vader Modular Fuzzer (VMF)
+ * Copyright (c) 2021-2024 The Charles Stark Draper Laboratory, Inc.
+ * <vmf@draper.com>
+ *  
+ * Effort sponsored by the U.S. Government under Other Transaction number
+ * W9124P-19-9-0001 between AMTC and the Government. The U.S. Government
+ * Is authorized to reproduce and distribute reprints for Governmental purposes
+ * notwithstanding any copyright notation thereon.
+ *  
+ * The views and conclusions contained herein are those of the authors and
+ * should not be interpreted as necessarily representing the official policies
+ * or endorsements, either expressed or implied, of the U.S. Government.
+ *  
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 (only) as 
+ * published by the Free Software Foundation.
+ *  
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *  
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *  
+ * @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
+ * ===========================================================================*/
+
 #include "gtest/gtest.h"
 #include "../../../VaderModularFuzzer/test/unittest/ModuleTestHelper.hpp"
 #include "SimpleStorage.hpp"
 #include "../vmf/src/modules/common/mutator/RadamsaDropByteMutator.hpp"
 
-// using namespace vmf;
 using vmf::StorageModule;
 using vmf::StorageRegistry;
 using vmf::ModuleTestHelper;
@@ -12,8 +40,6 @@ using vmf::SimpleStorage;
 using vmf::StorageEntry;
 using vmf::RadamsaDropByteMutator;
 using vmf::BaseException;
-
-// #define GTEST_COUT std::cerr << "[          ] [ INFO ]"
 
 class RadamsaDropByteMutatorTest : public ::testing::Test {
   protected:
@@ -35,16 +61,6 @@ class RadamsaDropByteMutatorTest : public ::testing::Test {
           StorageRegistry::BUFFER, 
           StorageRegistry::READ_WRITE
       );
-      // int_key = registry->registerKey(
-      //     "TEST_INT",
-      //     StorageRegistry::INT,
-      //     StorageRegistry::READ_WRITE
-      // );
-      // normalTag = registry->registerTag(
-      //     "RAN_SUCCESSFULLY",
-      //     StorageRegistry::WRITE_ONLY
-      // );
-      // // registry->validateRegistration();
       storage->configure(registry, metadata);
       theMutator->init(*config);
       theMutator->registerStorageNeeds(*registry);
@@ -66,36 +82,6 @@ class RadamsaDropByteMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
-TEST_F(RadamsaDropByteMutatorTest, TestBufferSize)
-{
-  StorageEntry* baseEntry = storage->createNewEntry();
-  StorageEntry* modEntry = storage->createNewEntry();
-
-  char* buff = baseEntry->allocateBuffer(testCaseKey, 12);
-  buff[0] = 'T';
-  buff[1] = 'E';
-  buff[2] = 'S';
-  buff[3] = 'T';
-  buff[4] = '1';
-  buff[5] = '2';
-  buff[6] = '3';
-  buff[7] = '4';
-  buff[8] = '5';
-  buff[9] = '6';
-  buff[10] = '7';
-  buff[11] = '8';
-
-  try{
-      theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-  } 
-  catch (BaseException e)
-  {
-    FAIL() << "Exception thrown: " << e.getReason();
-  }
-
-  EXPECT_EQ(baseEntry->getBufferSize(testCaseKey), modEntry->getBufferSize(testCaseKey));
-}
-
 TEST_F(RadamsaDropByteMutatorTest, TestByteDropped)
 {
   StorageEntry* baseEntry = storage->createNewEntry();
@@ -113,5 +99,6 @@ TEST_F(RadamsaDropByteMutatorTest, TestByteDropped)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
+  EXPECT_EQ(baseEntry->getBufferSize(testCaseKey), modEntry->getBufferSize(testCaseKey));
   EXPECT_EQ(modBuff[0], '\0');
 }
