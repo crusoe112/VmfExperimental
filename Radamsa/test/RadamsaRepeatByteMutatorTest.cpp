@@ -87,7 +87,8 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestOneByteRepeat)
   StorageEntry* baseEntry = storage->createNewEntry();
   StorageEntry* modEntry = storage->createNewEntry();
 
-  char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
+  int buff_len = 1;
+  char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
   buff[0] = '4';
 
   try{
@@ -99,16 +100,16 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestOneByteRepeat)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
-  int buff_len = modEntry->getBufferSize(testCaseKey);
+  int modBuff_len = modEntry->getBufferSize(testCaseKey);
   int counter = 0;
 
-  for(int i=0; i < buff_len; i++){
+  for(int i=0; i < modBuff_len; i++){
     if(modBuff[i] == '4')
       counter++;
   }
 
-  EXPECT_GT(modEntry->getBufferSize(testCaseKey), baseEntry->getBufferSize(testCaseKey) + 1);
-  EXPECT_EQ(buff_len - 1, counter);
+  EXPECT_GT(modBuff_len, buff_len + 1);
+  EXPECT_EQ(modBuff_len - 1, counter);
 }
 
 TEST_F(RadamsaRepeatByteMutatorTest, TestTwoBytesRepeat)
@@ -116,7 +117,8 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestTwoBytesRepeat)
   StorageEntry* baseEntry = storage->createNewEntry();
   StorageEntry* modEntry = storage->createNewEntry();
 
-  char* buff = baseEntry->allocateBuffer(testCaseKey, 2);
+  int buff_len = 2;
+  char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
   buff[0] = '4';
   buff[1] = '5';
 
@@ -129,7 +131,7 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestTwoBytesRepeat)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
-  int buff_len = modEntry->getBufferSize(testCaseKey);
+  int modBuff_len = modEntry->getBufferSize(testCaseKey);
   int counter = 0;
 
   for(int i=0; i < buff_len; i++){
@@ -137,6 +139,6 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestTwoBytesRepeat)
       counter++;
   }
 
-  EXPECT_GT(modEntry->getBufferSize(testCaseKey), baseEntry->getBufferSize(testCaseKey) + 1);
-  EXPECT_TRUE(counter == 1 | counter == buff_len - 2);
+  EXPECT_GT(modBuff_len, buff_len + 1);
+  EXPECT_TRUE(counter == 1 | counter == modBuff_len - 2);
 }

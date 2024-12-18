@@ -87,7 +87,8 @@ TEST_F(RadamsaRandomizeByteMutatorTest, TestRandomize)
   StorageEntry* baseEntry = storage->createNewEntry();
   StorageEntry* modEntry = storage->createNewEntry();
 
-  char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
+  int buff_len = 1;
+  char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
   buff[0] = '4';
 
   try{
@@ -99,6 +100,8 @@ TEST_F(RadamsaRandomizeByteMutatorTest, TestRandomize)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
-  EXPECT_EQ(baseEntry->getBufferSize(testCaseKey) + 1, modEntry->getBufferSize(testCaseKey));
-  EXPECT_NE(modBuff[0], '4');
+  ASSERT_FALSE(std::equal(buff, buff + buff_len, 
+                          modBuff, modBuff + buff_len 
+                         ));
+  EXPECT_EQ(buff_len + 1, modEntry->getBufferSize(testCaseKey));
 }

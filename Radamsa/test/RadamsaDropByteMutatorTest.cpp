@@ -87,7 +87,8 @@ TEST_F(RadamsaDropByteMutatorTest, TestByteDropped)
   StorageEntry* baseEntry = storage->createNewEntry();
   StorageEntry* modEntry = storage->createNewEntry();
 
-  char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
+  int buff_len = 1;
+  char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
   buff[0] = '4';
 
   try{
@@ -99,6 +100,6 @@ TEST_F(RadamsaDropByteMutatorTest, TestByteDropped)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
-  EXPECT_EQ(baseEntry->getBufferSize(testCaseKey), modEntry->getBufferSize(testCaseKey));
+  EXPECT_EQ(buff_len, modEntry->getBufferSize(testCaseKey));
   EXPECT_EQ(modBuff[0], '\0');
 }
