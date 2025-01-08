@@ -28,9 +28,9 @@
  * ===========================================================================*/
 
 #include "gtest/gtest.h"
-#include "../../../VaderModularFuzzer/test/unittest/ModuleTestHelper.hpp"
+#include "ModuleTestHelper.hpp"
 #include "SimpleStorage.hpp"
-#include "../vmf/src/modules/common/mutator/RadamsaFlipByteMutator.hpp"
+#include "RadamsaFlipByteMutator.hpp"
 
 using vmf::StorageModule;
 using vmf::StorageRegistry;
