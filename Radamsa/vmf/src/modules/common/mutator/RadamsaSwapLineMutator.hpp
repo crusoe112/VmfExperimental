@@ -31,7 +31,7 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
-#include "mutationBase.hpp"
+#include "RadamsaLineMutatorBase.hpp"
 #include "VmfRand.hpp"
 
 namespace vmf
@@ -39,7 +39,7 @@ namespace vmf
 /**
  *
  */
-class RadamsaSwapLineMutator: public MutatorModule, public MutationBase
+class RadamsaSwapLineMutator: public MutatorModule, public RadamsaLineMutatorBase
 {
     public:
 
