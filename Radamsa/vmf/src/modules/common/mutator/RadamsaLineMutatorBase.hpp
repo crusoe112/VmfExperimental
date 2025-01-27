@@ -164,7 +164,142 @@ public:
 
             auto data{std::make_unique<LineVector[]>(numberOfElements)};
 
-    // struct LineList
+            for(size_t it{0u}; it < numberOfElements; ++it)
+            {
+                const Line& line{lineData.at(it)};
+
+                data[it] = std::move(LineVector{buffer,line});
+
+                Capacity += line.Size;
+            }
+
+            NumberOfElements = numberOfElements;
+            Data = std::move(data);
+        }
+
+        LineList(const LineList& other) noexcept
+        {
+            // Copy Data
+
+            const size_t& numberOfElements{other.NumberOfElements};
+
+            NumberOfElements = numberOfElements;
+            Capacity = other.Capacity;
+
+            Data = std::make_unique<LineVector[]>(numberOfElements);
+
+            for (size_t it{0u}; it < numberOfElements; ++it)
+            {
+                Data[it] = other.Data[it];
+            }
+        }
+
+        LineList(LineList&& other) noexcept
+        {
+            // Copy Data
+
+            const size_t& numberOfElements{other.NumberOfElements};
+
+            NumberOfElements = numberOfElements;
+            Capacity = other.Capacity;
+
+            Data = std::make_unique<LineVector[]>(numberOfElements);
+            //memcpy(Data.get(), other.Data.get(), numberOfElements); //not legal
+            int count = numberOfElements;
+            for(int i=0; i<count; i++)
+            {
+                Data[i] = other.Data[i];
+            }
+
+
+            // Release ownership
+
+            other.Data.release();
+            other.Capacity = 0u;
+            other.NumberOfElements = 0u;
+        }
+
+        LineList& operator=(const LineList& other)
+        {
+            // Copy Data
+
+            const size_t& numberOfElements{other.NumberOfElements};
+
+            NumberOfElements = numberOfElements;
+            Capacity = other.Capacity;
+
+            Data = std::make_unique<LineVector[]>(numberOfElements);
+            //memcpy(Data.get(), other.Data.get(), numberOfElements); //not legal
+            int count = numberOfElements;
+            for(int i=0; i<count; i++)
+            {
+                Data[i] = other.Data[i];
+            }
+
+            return *this;
+        }
+
+        LineList& operator=(LineList&& other)
+        {
+            // Copy Data
+
+            const size_t& numberOfElements{other.NumberOfElements};
+
+            NumberOfElements = numberOfElements;
+            Capacity = other.Capacity;
+
+            Data = std::make_unique<LineVector[]>(numberOfElements);
+            //memcpy(Data.get(), other.Data.get(), numberOfElements); //not legal
+            int count = numberOfElements;
+            for(int i=0; i<count; i++)
+            {
+                Data[i] = other.Data[i];
+            }
+
+            // Release ownership
+
+            other.Data.release();
+            other.Capacity = 0u;
+            other.NumberOfElements = 0u;
+
+            return *this;
+        }
+
+        bool operator==(const LineList& other) const
+        {
+            auto compareLineVectors{
+                [&](const LineVector* const lhs, const LineVector* const rhs) -> bool
+                {
+                    if (lhs != nullptr && rhs != nullptr)
+                    {
+                        for (size_t it{0u}; it < lhs->Size; ++it)
+                            if (lhs->Data[it] != rhs->Data[it])
+                                return false;
+
+                        return true;
+                    }
+                    else if (lhs == nullptr && rhs == nullptr)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            };
+
+            return ((NumberOfElements == other.NumberOfElements) &&
+                    (Capacity == other.Capacity) &&
+                    (compareLineVectors(Data.get(), other.Data.get())));
+        }
+
+        bool operator!=(const LineList& other) const { return !(*this == other); }
+
+        std::unique_ptr<LineVector[]> Data{nullptr};
+        size_t NumberOfElements{0u};
+        size_t Capacity{0u};
+    };
 
     RadamsaLineMutatorBase() = delete;
     virtual ~RadamsaLineMutatorBase() = default;
