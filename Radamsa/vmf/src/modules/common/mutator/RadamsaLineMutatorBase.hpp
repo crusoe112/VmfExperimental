@@ -63,7 +63,106 @@ public:
         size_t Size{0u};
     };
 
-    // struct LineVector
+    struct LineVector
+    {
+        ~LineVector() = default;
+        LineVector() = default;
+
+        LineVector(
+            const char* const buffer,
+            const Line& lineData)
+        {
+            Data = std::make_unique<char[]>(lineData.Size);
+            memcpy(Data.get(), &buffer[lineData.StartIndex], lineData.Size);
+
+            Size = lineData.Size;
+        }
+
+        LineVector(const LineVector &other) noexcept
+        {
+            // Copy Data
+
+            const size_t& size{other.Size};
+
+            Data = std::make_unique<char[]>(size);
+            memcpy(Data.get(), other.Data.get(), size);
+
+            Size = size;
+        }
+
+        LineVector(LineVector&& other) noexcept
+        {
+            // Copy Data
+
+            const size_t& size{other.Size};
+
+            Data = std::make_unique<char[]>(size);
+            memcpy(Data.get(), other.Data.get(), size);
+
+            Size = size;
+
+            // Release ownership
+
+            other.Data.release();
+            other.Size = 0u;
+        }
+
+        LineVector& operator=(const LineVector& other)
+        {
+            // Copy Data
+
+            const size_t& size{other.Size};
+
+            Data = std::make_unique<char[]>(size);
+            memcpy(Data.get(), other.Data.get(), size);
+
+            Size = size;
+
+            return *this;
+        }
+
+        LineVector& operator=(LineVector&& other)
+        {
+            // Copy Data
+
+            const size_t& size{other.Size};
+
+            Data = std::make_unique<char[]>(size);
+            memcpy(Data.get(), other.Data.get(), size);
+
+            Size = size;
+
+            // Release ownership
+
+            other.Data.release();
+            other.Size = 0u;
+
+            return *this;
+        }
+
+        bool operator==(const LineVector &other) const { 
+            return (Size == other.Size && 
+                    (memcmp(Data.get(), other.Data.get(), other.Size) == 0)); 
+        }
+
+        bool operator!=(const LineVector &other) const { return !(*this == other); } // we may want to change this to test for equality instead of identity
+
+        std::unique_ptr<char[]> Data{nullptr};
+        size_t Size{0u};
+    };
+
+    struct LineList
+    {
+        ~LineList() = default;
+        LineList() = default;
+
+        LineList(
+            const char* const buffer,
+            const std::vector<Line>& lineData) noexcept
+        {
+            const size_t numberOfElements{lineData.size()};
+
+            auto data{std::make_unique<LineVector[]>(numberOfElements)};
 
     // struct LineList
 
