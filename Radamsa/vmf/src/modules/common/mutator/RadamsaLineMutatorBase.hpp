@@ -40,6 +40,36 @@ namespace vmf
 class RadamsaLineMutatorBase: public MutationBase
 {
 public:
+    struct Line
+    {
+        Line() = default;
+        ~Line() = default;
+
+        Line(Line&&) = default;
+        Line(const Line&) = default;
+
+        Line& operator=(Line&&) = default;
+        Line& operator=(const Line&) = default;
+
+        bool operator==(const Line &other) const { 
+            return (IsValid == other.IsValid && 
+                    StartIndex == other.StartIndex && 
+                    Size == other.Size); 
+        }
+        bool operator!=(const Line &other) const { return !(*this == other); } // we may want to change this to test for equality instead of identity
+
+        bool IsValid{false};
+        size_t StartIndex{0u};
+        size_t Size{0u};
+    };
+
+    // struct LineVector
+
+    // struct LineList
+
+    RadamsaLineMutatorBase() = delete;
+    virtual ~RadamsaLineMutatorBase() = default;
+
     // line mutator helper functions go here
 };
 }
