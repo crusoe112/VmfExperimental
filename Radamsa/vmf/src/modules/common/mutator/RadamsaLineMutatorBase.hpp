@@ -301,7 +301,7 @@ public:
         size_t Capacity{0u};
     };
 
-    RadamsaLineMutatorBase() = delete;
+    RadamsaLineMutatorBase() = default;
     virtual ~RadamsaLineMutatorBase() = default;
 
     // line mutator helper functions go here
