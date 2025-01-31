@@ -170,10 +170,10 @@ TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
     EXPECT_EQ(buff_len / line_len - 1, 
                std::count(modBuff, modBuff + buff_len, '\n'));
     // test buff len
-    EXPECT_EQ(buff_len - line_len, modEntry->getBufferSize(testCaseKey));
+    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
     // test buff contents
     std::string modString = std::string(modBuff);
-    EXPECT_EQ(modString, "");
+    EXPECT_EQ(modString, "\0");
 }
 
 TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
@@ -206,11 +206,11 @@ TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
     EXPECT_EQ(buff_len / line_len - 1, 
                std::count(modBuff, modBuff + buff_len, '\n'));
     // test buff len
-    EXPECT_EQ(buff_len - line_len, modEntry->getBufferSize(testCaseKey));
+    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
     // test buff contents
     std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n" | 
-                modString == "5\n");
+    EXPECT_TRUE(modString == "4\n\0" | 
+                modString == "5\n\0");
 }
 
 TEST_F(RadamsaDeleteLineMutatorTest, ThreeLines)
@@ -245,10 +245,10 @@ TEST_F(RadamsaDeleteLineMutatorTest, ThreeLines)
     EXPECT_EQ(buff_len / line_len - 1, 
                std::count(modBuff, modBuff + buff_len, '\n'));
     // test buff len
-    EXPECT_EQ(buff_len - line_len, modEntry->getBufferSize(testCaseKey));
+    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
     // test buff contents
     std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n5\n" | 
-                modString == "5\n6\n" | 
-                modString == "4\n6\n");
+    EXPECT_TRUE(modString == "4\n5\n\0" | 
+                modString == "5\n6\n\0" | 
+                modString == "4\n6\n\0");
 }
