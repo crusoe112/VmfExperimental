@@ -171,6 +171,9 @@ TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
                std::count(modBuff, modBuff + buff_len, '\n'));
     // test buff len
     EXPECT_EQ(buff_len - line_len, modEntry->getBufferSize(testCaseKey));
+    // test buff contents
+    std::string modString = std::string(modBuff);
+    EXPECT_EQ(modString, "");
 }
 
 TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
