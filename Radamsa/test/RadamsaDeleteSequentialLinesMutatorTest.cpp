@@ -142,3 +142,118 @@ TEST_F(RadamsaDeleteSequentialLinesMutatorTest, BufferSizeGEOne)
     }
 }
 
+TEST_F(RadamsaDeleteSequentialLinesMutatorTest, OneLine)
+{    
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+
+    size_t buff_len = 2;
+    size_t line_len = 2;
+    char* modBuff;
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    buff[0] = '4';
+    buff[1] = '\n';
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    // test buff ne
+    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                            modBuff,    modBuff + buff_len));
+    // test number of lines in buff
+    EXPECT_EQ(buff_len / line_len - 1, 
+               std::count(modBuff, modBuff + buff_len, '\n'));
+    // test buff len
+    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
+    // test buff contents
+    std::string modString = std::string(modBuff);
+    EXPECT_EQ(modString, "\0");
+}
+
+TEST_F(RadamsaDeleteSequentialLinesMutatorTest, TwoLines)
+{    
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+
+    size_t buff_len = 4;
+    size_t line_len = 2;
+    char* modBuff;
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    buff[0] = '4';
+    buff[1] = '\n';
+    buff[2] = '5';
+    buff[3] = '\n';
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    // test buff ne
+    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                            modBuff,    modBuff + buff_len));
+    // test number of lines in buff (at least one line removed)
+    EXPECT_LE(std::count(modBuff, modBuff + buff_len, '\n'),
+              buff_len / line_len - 1);
+    // test buff len
+    EXPECT_LE(modEntry->getBufferSize(testCaseKey), buff_len - line_len + 1);
+    // test buff contents
+    std::string modString = std::string(modBuff);
+    EXPECT_TRUE(modString == "4\n\0" |  // deleted one line
+                modString == "5\n\0" | 
+                modString == "\0");     // deleted two lines
+}
+
+TEST_F(RadamsaDeleteSequentialLinesMutatorTest, ThreeLines)
+{    
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+
+    size_t buff_len = 6;
+    size_t line_len = 2;
+    char* modBuff;
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    buff[0] = '4';
+    buff[1] = '\n';
+    buff[2] = '5';
+    buff[3] = '\n';
+    buff[4] = '6';
+    buff[5] = '\n';
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    // test buff ne
+    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                            modBuff,    modBuff + buff_len));
+    // test number of lines in buff (at least one line removed)
+    EXPECT_LE(std::count(modBuff, modBuff + buff_len, '\n'),
+              buff_len / line_len - 1);
+    // test buff len
+    EXPECT_LE(modEntry->getBufferSize(testCaseKey), buff_len - line_len + 1);
+    // test buff contents
+    std::string modString = std::string(modBuff);
+    EXPECT_TRUE(modString == "4\n5\n\0" |   // deleted one line
+                modString == "5\n6\n\0" |
+                modString == "4\n6\n\0" |
+                modString == "4\n\0" |      // deleted two lines
+                modString == "5\n\0" | 
+                modString == "6\n\0" | 
+                modString == "\0");         // deleted three lines
+}
