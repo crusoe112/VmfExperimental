@@ -100,6 +100,8 @@ TEST_F(RadamsaDropByteMutatorTest, TestByteDropped)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
+  ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                          modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
   EXPECT_EQ(buff_len, modEntry->getBufferSize(testCaseKey));
   EXPECT_EQ(modBuff[0], '\0');
 }

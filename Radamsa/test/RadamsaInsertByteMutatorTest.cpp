@@ -100,6 +100,8 @@ TEST_F(RadamsaInsertByteMutatorTest, TestByteInserted)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
+  ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                          modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
   EXPECT_EQ(buff_len + 2, modEntry->getBufferSize(testCaseKey));
   EXPECT_TRUE(modBuff[0] != '4' | modBuff[1] != '4');
 }

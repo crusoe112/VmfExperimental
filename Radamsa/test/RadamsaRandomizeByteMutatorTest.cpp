@@ -100,8 +100,7 @@ TEST_F(RadamsaRandomizeByteMutatorTest, TestRandomize)
   }
 
   char* modBuff = modEntry->getBufferPointer(testCaseKey);
-  ASSERT_FALSE(std::equal(buff, buff + buff_len, 
-                          modBuff, modBuff + buff_len 
-                         ));
+  ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                          modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
   EXPECT_EQ(buff_len + 1, modEntry->getBufferSize(testCaseKey));
 }

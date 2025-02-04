@@ -108,6 +108,8 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestOneByteRepeat)
       counter++;
   }
 
+  ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                          modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
   EXPECT_GT(modBuff_len, buff_len + 1);
   EXPECT_EQ(modBuff_len - 1, counter);
 }
@@ -139,6 +141,8 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestTwoBytesRepeat)
       counter++;
   }
 
+  ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+                          modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
   EXPECT_GT(modBuff_len, buff_len + 1);
   EXPECT_TRUE(counter == 1 | counter == modBuff_len - 2);
 }

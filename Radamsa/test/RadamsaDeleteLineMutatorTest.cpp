@@ -165,7 +165,7 @@ TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
 
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + buff_len));
+                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff
     EXPECT_EQ(buff_len / line_len - 1, 
                std::count(modBuff, modBuff + buff_len, '\n'));
@@ -201,7 +201,7 @@ TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
 
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + buff_len));
+                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff
     EXPECT_EQ(buff_len / line_len - 1, 
                std::count(modBuff, modBuff + buff_len, '\n'));
@@ -240,7 +240,7 @@ TEST_F(RadamsaDeleteLineMutatorTest, ThreeLines)
 
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + buff_len));
+                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff
     EXPECT_EQ(buff_len / line_len - 1, 
                std::count(modBuff, modBuff + buff_len, '\n'));
