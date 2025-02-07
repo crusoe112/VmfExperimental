@@ -142,7 +142,7 @@ TEST_F(RadamsaDuplicateLineMutatorTest, BufferSizeGEOne)
     }
 }
 
-/*TEST_F(RadamsaDuplicateLineMutatorTest, OneLine)
+TEST_F(RadamsaDuplicateLineMutatorTest, OneLine)
 {    
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -163,20 +163,31 @@ TEST_F(RadamsaDuplicateLineMutatorTest, BufferSizeGEOne)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+
+    bool containsUnexpectedValue = false;
+    for(size_t i = 0; i < buff_len && !containsUnexpectedValue; ++i) {
+        if(i % line_len == 0 && modBuff[i] != '4') {
+            containsUnexpectedValue = true;
+        }
+        else if(modBuff[i] != '\n') {
+            containsUnexpectedValue = true;
+        }
+    }
+
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + buff_len));
-    // test number of lines in buff
-    EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
-    // test buff len
-    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
+                            modBuff,    modBuff + modBuff_len - 1));
+    // test number of lines
+    EXPECT_GT(std::count(modBuff, modBuff + modBuff_len, '\n'),
+              buff_len / line_len);
+    // test buff len (should be a multiple of line_len plus \0)
+    EXPECT_EQ(modBuff_len % line_len, 1);
     // test buff contents
-    std::string modString = std::string(modBuff);
-    EXPECT_EQ(modString, "\0");
+    EXPECT_FALSE(containsUnexpectedValue);
 }
 
-TEST_F(RadamsaDuplicateLineMutatorTest, TwoLines)
+/*TEST_F(RadamsaDuplicateLineMutatorTest, TwoLines)
 {    
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
