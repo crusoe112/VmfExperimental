@@ -170,7 +170,7 @@ TEST_F(RadamsaDuplicateLineMutatorTest, OneLine)
         if(i % line_len == 0 && modBuff[i] != '4') {
             containsUnexpectedValue = true;
         }
-        else if(modBuff[i] != '\n') {
+        else if(i % line_len == 0 && modBuff[i] != '\n') {
             containsUnexpectedValue = true;
         }
     }
@@ -187,7 +187,7 @@ TEST_F(RadamsaDuplicateLineMutatorTest, OneLine)
     EXPECT_FALSE(containsUnexpectedValue);
 }
 
-/*TEST_F(RadamsaDuplicateLineMutatorTest, TwoLines)
+TEST_F(RadamsaDuplicateLineMutatorTest, TwoLines)
 {    
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -210,19 +210,29 @@ TEST_F(RadamsaDuplicateLineMutatorTest, OneLine)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+
+    // set flag if incorrect value or not a newline
+    bool containsUnexpectedValue = false;
+    for(size_t i = 0; i < buff_len && !containsUnexpectedValue; ++i) {
+        if(i % line_len == 0 && modBuff[i] != '4' && modBuff[i] != '5') {
+            containsUnexpectedValue = true;
+        }
+        else if(i % line_len == 1 && modBuff[i] != '\n') {
+            containsUnexpectedValue = true;
+        }
+    }
+
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + buff_len));
-    // test number of lines in buff (at least one line removed)
-    EXPECT_LE(std::count(modBuff, modBuff + buff_len, '\n'),
-              buff_len / line_len - 1);
-    // test buff len
-    EXPECT_LE(modEntry->getBufferSize(testCaseKey), buff_len - line_len + 1);
+                            modBuff,    modBuff + modBuff_len - 1));
+    // test number of lines
+    EXPECT_GT(std::count(modBuff, modBuff + modBuff_len, '\n'),
+              buff_len / line_len);
+    // test buff len (should be a multiple of line_len plus \0)
+    EXPECT_EQ(modBuff_len % line_len, 1);
     // test buff contents
-    std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n\0" |  // deleted one line
-                modString == "5\n\0" | 
-                modString == "\0");     // deleted two lines
+    EXPECT_FALSE(containsUnexpectedValue);
 }
 
 TEST_F(RadamsaDuplicateLineMutatorTest, ThreeLines)
@@ -250,21 +260,30 @@ TEST_F(RadamsaDuplicateLineMutatorTest, ThreeLines)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+
+    // set flag if incorrect value or not a newline
+    bool containsUnexpectedValue = false;
+    for(size_t i = 0; i < buff_len && !containsUnexpectedValue; ++i) {
+        if(i % line_len == 0 && 
+           modBuff[i] != '4' && 
+           modBuff[i] != '5' &&
+           modBuff[i] != '6') {
+            containsUnexpectedValue = true;
+        }
+        else if(i % line_len == 1 && modBuff[i] != '\n') {
+            containsUnexpectedValue = true;
+        }
+    }
+
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + buff_len));
-    // test number of lines in buff (at least one line removed)
-    EXPECT_LE(std::count(modBuff, modBuff + buff_len, '\n'),
-              buff_len / line_len - 1);
-    // test buff len
-    EXPECT_LE(modEntry->getBufferSize(testCaseKey), buff_len - line_len + 1);
+                            modBuff,    modBuff + modBuff_len - 1));
+    // test number of lines
+    EXPECT_GT(std::count(modBuff, modBuff + modBuff_len, '\n'),
+              buff_len / line_len);
+    // test buff len (should be a multiple of line_len plus \0)
+    EXPECT_EQ(modBuff_len % line_len, 1);
     // test buff contents
-    std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n5\n\0" |   // deleted one line
-                modString == "5\n6\n\0" |
-                modString == "4\n6\n\0" |
-                modString == "4\n\0" |      // deleted two lines
-                modString == "5\n\0" | 
-                modString == "6\n\0" | 
-                modString == "\0");         // deleted three lines
-}*/
+    EXPECT_FALSE(containsUnexpectedValue);
+}
