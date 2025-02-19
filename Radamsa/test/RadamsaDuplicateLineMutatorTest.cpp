@@ -77,12 +77,23 @@ class RadamsaDuplicateLineMutatorTest : public ::testing::Test {
       theMutator->init(*config);
       theMutator->registerStorageNeeds(*registry);
       theMutator->registerMetadataNeeds(*metadata);
-  }
+    }
 
     void TearDown() override {
       delete registry;
       delete metadata;
       delete storage;
+    }
+
+    int GetNumOcc(std::string baseStr, std::string toFind) {
+        int count = 0;
+        size_t pos = baseStr.find(toFind);
+        while(pos != std::string::npos) {
+            ++count;
+            pos = baseStr.find(toFind, pos + toFind.length());
+        }
+
+        return count;
     }
 
     RadamsaDuplicateLineMutator* theMutator;
@@ -164,27 +175,21 @@ TEST_F(RadamsaDuplicateLineMutatorTest, OneLine)
     }
 
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-
-    bool containsUnexpectedValue = false;
-    for(size_t i = 0; i < buff_len && !containsUnexpectedValue; ++i) {
-        if(i % line_len == 0 && modBuff[i] != '4') {
-            containsUnexpectedValue = true;
-        }
-        else if(i % line_len == 0 && modBuff[i] != '\n') {
-            containsUnexpectedValue = true;
-        }
-    }
+    std::string modString = std::string(modBuff);
+    int count = GetNumOcc(modString, "4\n");
 
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modBuff_len - 1));
+                            modBuff,    modBuff + modBuff_len - 1)
+                );
     // test number of lines
-    EXPECT_GT(std::count(modBuff, modBuff + modBuff_len, '\n'),
-              buff_len / line_len);
-    // test buff len (should be a multiple of line_len plus \0)
-    EXPECT_EQ(modBuff_len % line_len, 1);
+    EXPECT_EQ(std::count(modBuff, modBuff + modBuff_len, '\n'),
+              buff_len / line_len + 1
+             );
+    // test buff len
+    EXPECT_EQ(modBuff_len, buff_len + line_len + 1);
     // test buff contents
-    EXPECT_FALSE(containsUnexpectedValue);
+    EXPECT_EQ(count, 2);
 }
 
 TEST_F(RadamsaDuplicateLineMutatorTest, TwoLines)
@@ -211,28 +216,24 @@ TEST_F(RadamsaDuplicateLineMutatorTest, TwoLines)
     }
 
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-
-    // set flag if incorrect value or not a newline
-    bool containsUnexpectedValue = false;
-    for(size_t i = 0; i < buff_len && !containsUnexpectedValue; ++i) {
-        if(i % line_len == 0 && modBuff[i] != '4' && modBuff[i] != '5') {
-            containsUnexpectedValue = true;
-        }
-        else if(i % line_len == 1 && modBuff[i] != '\n') {
-            containsUnexpectedValue = true;
-        }
-    }
+    std::string modString = std::string(modBuff);
+    int count4 = GetNumOcc(modString, "4\n");
+    int count5 = GetNumOcc(modString, "5\n");
 
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modBuff_len - 1));
+                            modBuff,    modBuff + modBuff_len - 1)
+                );
     // test number of lines
-    EXPECT_GT(std::count(modBuff, modBuff + modBuff_len, '\n'),
-              buff_len / line_len);
-    // test buff len (should be a multiple of line_len plus \0)
-    EXPECT_EQ(modBuff_len % line_len, 1);
+    EXPECT_EQ(std::count(modBuff, modBuff + modBuff_len, '\n'),
+              buff_len / line_len + 1
+             );
+    // test buff len
+    EXPECT_EQ(modBuff_len, buff_len + line_len + 1);
     // test buff contents
-    EXPECT_FALSE(containsUnexpectedValue);
+    EXPECT_TRUE((count4 == 2 && count5 == 1) ||
+                (count5 == 2 && count4 == 1)
+               );
 }
 
 TEST_F(RadamsaDuplicateLineMutatorTest, ThreeLines)
@@ -261,29 +262,24 @@ TEST_F(RadamsaDuplicateLineMutatorTest, ThreeLines)
     }
 
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-
-    // set flag if incorrect value or not a newline
-    bool containsUnexpectedValue = false;
-    for(size_t i = 0; i < buff_len && !containsUnexpectedValue; ++i) {
-        if(i % line_len == 0 && 
-           modBuff[i] != '4' && 
-           modBuff[i] != '5' &&
-           modBuff[i] != '6') {
-            containsUnexpectedValue = true;
-        }
-        else if(i % line_len == 1 && modBuff[i] != '\n') {
-            containsUnexpectedValue = true;
-        }
-    }
+    std::string modString = std::string(modBuff);
+    int count4 = GetNumOcc(modString, "4\n");
+    int count5 = GetNumOcc(modString, "5\n");
+    int count6 = GetNumOcc(modString, "6\n");
 
     // test buff ne
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modBuff_len - 1));
+                            modBuff,    modBuff + modBuff_len - 1)
+                );
     // test number of lines
-    EXPECT_GT(std::count(modBuff, modBuff + modBuff_len, '\n'),
-              buff_len / line_len);
-    // test buff len (should be a multiple of line_len plus \0)
-    EXPECT_EQ(modBuff_len % line_len, 1);
+    EXPECT_EQ(std::count(modBuff, modBuff + modBuff_len, '\n'),
+              buff_len / line_len + 1
+             );
+    // test buff len
+    EXPECT_EQ(modBuff_len, buff_len + line_len + 1);
     // test buff contents
-    EXPECT_FALSE(containsUnexpectedValue);
+    EXPECT_TRUE((count4 == 2 && count5 == 1 && count6 == 1) ||
+                (count5 == 2 && count4 == 1 && count6 == 1) ||
+                (count6 == 2 && count4 == 1 && count5 == 1)
+               );
 }
