@@ -105,29 +105,10 @@ class RadamsaRepeatLineMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
-TEST_F(RadamsaRepeatLineMutatorTest, BufferNotNull)
+/*TEST_F(RadamsaRepeatLineMutatorTest, BufferNotNull)
 {
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-
-    int buff_len = 1;
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    char** pBuff = &buff;   // get pointer to buffer
-    *pBuff = nullptr;       // null buff
-
-    try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    } 
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
-    }
-    catch (BaseException e)
-    {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
-    }
-}
+    // no way to test this without mocks
+}*/
 
 TEST_F(RadamsaRepeatLineMutatorTest, BufferSizeGEOne)
 {    
