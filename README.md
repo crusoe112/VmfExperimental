@@ -57,11 +57,11 @@ make install
 All experimental modules must be license-compatible with VMF itself, which is licensed under the GNU General Public License Version 2.
 
 
-### Unit Tests
+## Unit Tests
 
 VMF uses the Google Test framework for unit testing. A basic overview of the framework as well as example unit test are available here: [Primer](http://google.github.io/googletest/primer.html).
 
-## Running the Unit Tests
+### Running the Unit Tests
 To run the existing unit tests, use the following commands
 ```bash
 cd build
