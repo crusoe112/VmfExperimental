@@ -91,5 +91,117 @@ void RadamsaSwapLineMutator::registerStorageNeeds(StorageRegistry& registry)
 
 void RadamsaSwapLineMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // Consume the original buffer by copying a line to a random location and appending a null-terminator to the end.
+
+    constexpr size_t minimumSize{1u};
+    const size_t minimumSeedIndex{0u};
+    const size_t characterIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+
+    if (characterIndex > originalSize - 1u)
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    if (originalBuffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    const size_t numberOfLinesAfterIndex{
+                                    GetNumberOfLinesAfterIndex(
+                                                        originalBuffer,
+                                                        originalSize,
+                                                        characterIndex)};
+
+    if (numberOfLinesAfterIndex < 2) {
+        throw RuntimeException{"The buffer's minimum number of lines must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+    }
+
+    // Select random line to copy from/to.
+
+    const size_t minimumRandomLineOffset{0u};
+
+    const size_t firstRandomLineIndex{
+                                rand->randBetween(
+                                                    minimumRandomLineOffset,
+                                                    numberOfLinesAfterIndex - 1u)};
+
+    const size_t totalNumberOfLines{
+                                GetNumberOfLinesAfterIndex(
+                                                        originalBuffer,
+                                                        originalSize,
+                                                        0u)};
+
+    constexpr size_t lower{0u};
+    const size_t upper{totalNumberOfLines - 1u};
+    const size_t secondRandomLineIndex{
+                                    std::clamp(
+                                            firstRandomLineIndex + 1u,
+                                            lower,
+                                            upper)};
+
+    const Line firstRandomLineData{
+                            GetLineData(
+                                    originalBuffer,
+                                    originalSize,
+                                    firstRandomLineIndex,
+                                    numberOfLinesAfterIndex)};
+
+    const Line secondRandomLineData{
+                            GetLineData(
+                                    originalBuffer,
+                                    originalSize,
+                                    secondRandomLineIndex,
+                                    numberOfLinesAfterIndex)};
+
+    // The new buffer will be one line larger than the original buffer;
+    // additionally, it will contain one additional byte since a null-terminator will be appended to the end.
+
+    const size_t newBufferSize{originalSize + 1u};
+
+    // Allocate the new buffer and set it's elements to zero.
+
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
+    memset(newBuffer, 0u, newBufferSize);
+
+    // Copy data from the original buffer into the new buffer, but duplicate the random line.
+    // The last element in the new buffer is skipped since it was implicitly set to zero during allocation.
+
+    {
+        // Copy all of the elements including the line that is to be duplicated.
+
+        const size_t numberOfBytes{originalSize};
+
+        char* destination{newBuffer};
+        const char* source{originalBuffer};
+
+        memcpy(destination, source, numberOfBytes);
+    }
+
+    {
+        // Duplicate the line.
+
+        const size_t numberOfBytes{secondRandomLineData.Size};
+
+        char* destination{newBuffer + firstRandomLineData.StartIndex};
+        const char* source{originalBuffer + secondRandomLineData.StartIndex};
+
+        memcpy(destination, source, numberOfBytes);
+    }
+
+    {
+        // Copy all of the elements after the line that was duplicated.
+
+        const size_t numberOfBytes{firstRandomLineData.Size};
+
+        char* destination{
+                    (firstRandomLineData == secondRandomLineData) ?
+                    (newBuffer + firstRandomLineData.StartIndex) :
+                    (newBuffer + firstRandomLineData.StartIndex + secondRandomLineData.Size)};
+
+        const char* source{originalBuffer + firstRandomLineData.StartIndex};
+
+        memcpy(destination, source, numberOfBytes);
+    }
 }
