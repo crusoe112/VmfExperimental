@@ -33,8 +33,8 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
-#include "byteMutations.hpp"
-#include "lineMutations.hpp"
+// #include "byteMutations.hpp"
+// #include "lineMutations.hpp"
 
 
 namespace vmf::modules::radamsa
