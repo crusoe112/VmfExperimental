@@ -121,8 +121,8 @@ void RadamsaDuplicateLineMutator::mutateTestCase(StorageModule& storage, Storage
 
     const size_t randomLineIndex{
                             rand->randBetween(
-                                                    minimumRandomLineIndex,
-                                                    maximumRandomLineIndex)};
+                                            minimumRandomLineIndex,
+                                            maximumRandomLineIndex)};
 
     const Line lineData{
                     GetLineData(
