@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include "mutationBase.hpp"
+#include "RadamsaMutatorBase.hpp"
 #include "VmfRand.hpp"
 
 namespace vmf
@@ -38,7 +38,7 @@ namespace vmf
 /**
  *
  */
-class RadamsaLineMutatorBase: public MutationBase
+class RadamsaLineMutatorBase: public RadamsaMutatorBase
 {
 public:
     struct Line
