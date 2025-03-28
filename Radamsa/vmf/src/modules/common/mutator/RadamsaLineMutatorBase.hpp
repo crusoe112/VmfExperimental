@@ -413,5 +413,62 @@ public:
 
         return rand->randBetween(0u, randomUpperLimit) + 1u; // We add one to the return value in order to account for the case where the random upper value is zero.
     }
+
+    bool IsBinarish(
+                    const char* const buffer,
+                    const size_t size)
+{
+    constexpr size_t minimumSize{1u};
+
+    if (size < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+
+    if (buffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    constexpr size_t binarishPeekSize{8u};
+
+    for(size_t it{0}; it < binarishPeekSize; ++it)
+    {
+        // Peek into the data and return true if it contains UTF-8 or \0.
+
+        if(it == size)
+            break;
+
+        if(buffer[it] == '\0')
+            return true;
+
+        if((buffer[it] & (std::numeric_limits<char>::max() + 0x01)) != 0u)
+            return true;
+    }
+
+    return false;
+}
+
+    size_t GetRandomLogValue(const size_t maximumValue, VmfRand* rand)
+    {
+        constexpr size_t minimumValue{2u};
+
+        if(maximumValue <= minimumValue)
+            return 0u;
+
+        return GetRandomN_Bit(
+                            rand->randBetween(0u, maximumValue - minimumValue) + minimumValue,
+                            rand);
+    }
+
+    size_t GetRandomN_Bit(const size_t n, VmfRand* rand)
+    {
+        const size_t highValue{(n - 1u) << 1u};
+        const size_t randomValue{rand->randBetween(0u, highValue)};
+        const size_t nBitValue{randomValue | highValue};
+
+        return nBitValue;
+    }
+
+    void PermuteLine()
+    {
+        //TODO
+    }
 };
 }
