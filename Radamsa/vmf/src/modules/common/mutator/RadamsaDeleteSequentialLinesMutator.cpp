@@ -91,5 +91,80 @@ void RadamsaDeleteSequentialLinesMutator::registerStorageNeeds(StorageRegistry& 
 
 void RadamsaDeleteSequentialLinesMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // Consume the original buffer by deleting sequential lines from it and appending a null-terminator to the end.
+
+    constexpr size_t minimumSize{1u};
+    const size_t minimumSeedIndex{0u};
+    const size_t characterIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+
+    if (characterIndex > originalSize - 1u)
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    if (originalBuffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    
+    const size_t numberOfLinesAfterIndex{
+                                    GetNumberOfLinesAfterIndex(
+                                                            originalBuffer,
+                                                            originalSize,
+                                                            characterIndex)};
+
+    // Select a random line to delete.
+
+    const size_t minimumRandomLineOffset{0u};
+
+    const size_t randomLineIndexStart{
+                                rand->randBetween(
+                                                minimumRandomLineOffset,
+                                                numberOfLinesAfterIndex - 1u)};
+
+    const size_t randomLineIndexEnd{
+                                rand->randBetween(
+                                                minimumRandomLineOffset,
+                                                (numberOfLinesAfterIndex - 1u) - randomLineIndexStart) + randomLineIndexStart};
+
+    const Line startLineData{
+                        GetLineData(
+                                originalBuffer,
+                                originalSize,
+                                randomLineIndexStart,
+                                numberOfLinesAfterIndex)};
+
+    const Line endLineData{
+                        GetLineData(
+                                originalBuffer,
+                                originalSize,
+                                randomLineIndexEnd,
+                                numberOfLinesAfterIndex)};
+
+    // The new buffer will be multiple lines smaller than the original buffer;
+    // additionally, it will contain one additional byte since a null-terminator will be appended to the end.
+
+    const size_t newBufferSize{(originalSize - ((endLineData.StartIndex + endLineData.Size) - startLineData.StartIndex)) + 1u};
+
+    // Allocate the new buffer and set it's elements to zero.
+
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
+    memset(newBuffer, 0u, newBufferSize);
+
+    // Copy data from the original buffer into the new buffer, but skip the elements in the random lines that are to be deleted.
+    // The last element in the new buffer is skipped since it was implicitly set to zero during allocation.
+
+    for(size_t sourceIndex{0u}, destinationIndex{0u}; sourceIndex < originalSize; ++sourceIndex)
+    {
+        const size_t lineStartIndex{startLineData.StartIndex};
+        const size_t lineEndIndex{endLineData.StartIndex + endLineData.Size};
+
+        if(sourceIndex < lineStartIndex || sourceIndex >= lineEndIndex)
+        {
+            newBuffer[destinationIndex] = originalBuffer[sourceIndex];
+            ++destinationIndex;
+        }
+    }
 }
