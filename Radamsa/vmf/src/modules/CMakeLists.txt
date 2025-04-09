@@ -29,9 +29,6 @@
 
 # Create Radamsa library
 add_library(Radamsa SHARED
-#  common/mutator/byteMutations.cpp
-#  common/mutator/radamsaMutator.cpp
-#  common/mutator/lineMutations.cpp
   common/mutator/RadamsaDropByteMutator.cpp
   common/mutator/RadamsaFlipByteMutator.cpp
   common/mutator/RadamsaInsertByteMutator.cpp
@@ -46,6 +43,23 @@ add_library(Radamsa SHARED
   common/mutator/RadamsaCopyLineCloseByMutator.cpp
   common/mutator/RadamsaRepeatLineMutator.cpp
   common/mutator/RadamsaSwapLineMutator.cpp
+  common/mutator/RadamsaRepeatByteSequenceMutator.cpp       # -sr
+  common/mutator/RadamsaDeleteByteSequenceMutator.cpp       # -sd
+  common/mutator/RadamsaSwapLineOrderMutator.cpp            # -lp
+  common/mutator/RadamsaInsertLineFromElsewhereMutator.cpp  # -lis
+  common/mutator/RadamsaReplaceLineFromElsewhereMutator.cpp # -lrs
+  common/mutator/RadamsaDeleteNodeMutator.cpp               # -td
+  common/mutator/RadamsaDuplicateNodeMutator.cpp            # -tr2
+  common/mutator/RadamsaSwapNodesMutator.cpp                # -ts1
+  common/mutator/RadamsaSwapNodesPairwiseMutator.cpp        # -ts2
+  common/mutator/RadamsaRepeatPathMutator.cpp               # -tr
+  common/mutator/RadamsaWidenCodePointMutator.cpp           # -uw
+  common/mutator/RadamsaInsertUnicodeMutator.cpp            # -ui
+  common/mutator/RadamsaInsertUnicodeMutator.cpp            # -num
+  common/mutator/RadamsaXmlMutator.cpp                      # -xp
+  common/mutator/RadamsaJumpSimilarMutator.cpp              # -ft
+  common/mutator/RadamsaCloneSimilarMutator.cpp             # -fn
+  common/mutator/RadamsaFuseDataMutator.cpp                 # -fo
 )
 
 # Build-time dependencies for Radamsa
