@@ -94,29 +94,10 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
-TEST_F(RadamsaDeleteLineMutatorTest, BufferNotNull)
+/*TEST_F(RadamsaDeleteLineMutatorTest, BufferNotNull)
 {
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-
-    int buff_len = 1;
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    char** pBuff = &buff;   // get pointer to buffer
-    *pBuff = nullptr;       // null buff
-
-    try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    } 
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
-    }
-    catch (BaseException e)
-    {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
-    }
-}
+    // no way to test this without mocks
+}*/
 
 TEST_F(RadamsaDeleteLineMutatorTest, BufferSizeGEOne)
 {    
@@ -163,16 +144,20 @@ TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    // test buff ne
-    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
-    // test number of lines in buff
-    EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
-    // test buff len
-    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
-    // test buff contents
     std::string modString = std::string(modBuff);
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+
+    EXPECT_FALSE(std::equal(buff,       buff + buff_len, 
+                            modBuff,    modBuff + modBuff_len - 1)
+                ) << "Modified buffer must not be equal to original buffer";
+
+    EXPECT_EQ(buff_len / line_len - 1, 
+              std::count(modBuff, modBuff + buff_len, '\n')
+              ) << "Number of lines in modified buffer must be one less than those in the original buffer";
+
+    EXPECT_EQ(buff_len - line_len + 1, modBuff_len
+             ) << "Modified buffer length must be equal to the original buffer less one line plus one";
+    
     EXPECT_EQ(modString, "\0");
 }
 

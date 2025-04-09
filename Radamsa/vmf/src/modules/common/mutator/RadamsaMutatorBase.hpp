@@ -37,7 +37,7 @@
 
 namespace vmf
 {
-class MutationBase
+class RadamsaMutatorBase
 {
 public:
     // universal helper functions go here

@@ -30,14 +30,15 @@
 
 #pragma once
 
-#include "mutationBase.hpp"
+#include "RadamsaMutatorBase.hpp"
+#include "VmfRand.hpp"
 
 namespace vmf
 {
 /**
  *
  */
-class RadamsaLineMutatorBase: public MutationBase
+class RadamsaLineMutatorBase: public RadamsaMutatorBase
 {
 public:
     struct Line
@@ -303,5 +304,171 @@ public:
 
     RadamsaLineMutatorBase() = default;
     virtual ~RadamsaLineMutatorBase() = default;
+
+    Line GetLineData(
+                     const char* const buffer,
+                     const size_t size,
+                     const size_t lineIndex,
+                     const size_t numberOfLinesAfterIndex)
+    {
+        constexpr size_t minimumSize{1u};
+
+        if (size < minimumSize)
+            throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+
+        if (buffer == nullptr)
+            throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+        const size_t totalNumberOfLines{
+                                    GetNumberOfLinesAfterIndex(
+                                                            buffer,
+                                                            size,
+                                                            0u)};
+
+        if (lineIndex > totalNumberOfLines - 1u)
+            throw RuntimeException{"Line index exceeds the maximum number of lines", RuntimeException::UNEXPECTED_ERROR};
+
+        if (numberOfLinesAfterIndex > totalNumberOfLines)
+            throw RuntimeException{"Number of lines after index exceeds the maximum number of lines", RuntimeException::UNEXPECTED_ERROR};
+
+        const size_t lineOffset{totalNumberOfLines - numberOfLinesAfterIndex};
+
+        constexpr size_t lower{0u};
+        const size_t upper{totalNumberOfLines - 1u};
+        const size_t maximumLineIndex{
+                                std::clamp(
+                                        lineIndex + lineOffset,
+                                        lower,
+                                        upper)};
+
+        Line lineData;
+
+        for(size_t it{0u}, reverseLineIndex{maximumLineIndex}; it < size; ++it)
+        {
+            if(reverseLineIndex == 0u)
+            {
+                if(!lineData.IsValid)
+                {
+                    lineData.StartIndex = it;
+                    lineData.IsValid = true;
+                }
+
+                ++lineData.Size;
+
+                if(buffer[it] == '\n')
+                    break;
+            }
+            else
+            {
+                if(buffer[it] == '\n')
+                    --reverseLineIndex;
+            }
+        }
+
+        return lineData;
+    }
+
+    size_t GetNumberOfLinesAfterIndex(
+                                      const char* const buffer,
+                                      const size_t size,
+                                      const size_t index)
+    {
+        constexpr size_t minimumSize{1u};
+
+        if (size < minimumSize)
+            throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+
+        if (index > size - 1u)
+            throw RuntimeException{"Index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+        if (buffer == nullptr)
+            throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+        size_t numberOfLines{0u};
+
+        for(size_t it{index}; it < size; ++it)
+            if(buffer[it] == '\n')
+                ++numberOfLines;
+
+        return numberOfLines;
+    }
+
+
+    size_t GetRandomRepetitionLength(VmfRand* rand) noexcept
+    {
+        constexpr size_t MINIMUM_UPPER_LIMIT{0x2u};
+        constexpr size_t MAXIMUM_UPPER_LIMIT{0x20000u};
+
+        size_t randomStop{rand->randBetween(0u, MINIMUM_UPPER_LIMIT)};
+        size_t randomUpperLimit{MINIMUM_UPPER_LIMIT};
+
+        while(randomStop != 0u)
+        {
+            if(randomUpperLimit == MAXIMUM_UPPER_LIMIT)
+                break;
+
+            randomUpperLimit <<= 1u;
+            randomStop = rand->randBetween(0u, MINIMUM_UPPER_LIMIT);
+        }
+
+        return rand->randBetween(0u, randomUpperLimit) + 1u; // We add one to the return value in order to account for the case where the random upper value is zero.
+    }
+
+    bool IsBinarish(
+                    const char* const buffer,
+                    const size_t size)
+{
+    constexpr size_t minimumSize{1u};
+
+    if (size < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+
+    if (buffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    constexpr size_t binarishPeekSize{8u};
+
+    for(size_t it{0}; it < binarishPeekSize; ++it)
+    {
+        // Peek into the data and return true if it contains UTF-8 or \0.
+
+        if(it == size)
+            break;
+
+        if(buffer[it] == '\0')
+            return true;
+
+        if((buffer[it] & (std::numeric_limits<char>::max() + 0x01)) != 0u)
+            return true;
+    }
+
+    return false;
+}
+
+    size_t GetRandomLogValue(const size_t maximumValue, VmfRand* rand)
+    {
+        constexpr size_t minimumValue{2u};
+
+        if(maximumValue <= minimumValue)
+            return 0u;
+
+        return GetRandomN_Bit(
+                            rand->randBetween(0u, maximumValue - minimumValue) + minimumValue,
+                            rand);
+    }
+
+    size_t GetRandomN_Bit(const size_t n, VmfRand* rand)
+    {
+        const size_t highValue{(n - 1u) << 1u};
+        const size_t randomValue{rand->randBetween(0u, highValue)};
+        const size_t nBitValue{randomValue | highValue};
+
+        return nBitValue;
+    }
+
+    void PermuteLine()
+    {
+        //TODO
+    }
 };
 }

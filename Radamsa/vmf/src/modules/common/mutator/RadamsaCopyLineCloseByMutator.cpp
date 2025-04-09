@@ -91,5 +91,81 @@ void RadamsaCopyLineCloseByMutator::registerStorageNeeds(StorageRegistry& regist
 
 void RadamsaCopyLineCloseByMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // Consume the original buffer by copying a line to a random location and appending a null-terminator to the end.
+
+    constexpr size_t minimumSize{1u};
+    const size_t minimumSeedIndex{0u};
+    const size_t characterIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+
+    if (characterIndex > originalSize - 1u)
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    if (originalBuffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    const size_t numberOfLinesAfterIndex{
+                                    GetNumberOfLinesAfterIndex(
+                                                        originalBuffer,
+                                                        originalSize,
+                                                        characterIndex)};
+
+    // Select random line to copy from/to.
+
+    const size_t minimumRandomLineOffset{0u};
+
+    const size_t randomLineIndexSource{
+                                rand->randBetween(
+                                                minimumRandomLineOffset,
+                                                numberOfLinesAfterIndex - 1u)};
+
+    const size_t randomLineIndexDestination{
+                                    rand->randBetween(
+                                                    minimumRandomLineOffset,
+                                                    numberOfLinesAfterIndex - 1u)};
+
+    const Line lineDataSource{
+                        GetLineData(
+                                originalBuffer,
+                                originalSize,
+                                randomLineIndexSource,
+                                numberOfLinesAfterIndex)};
+
+    const Line lineDataDestination{
+                            GetLineData(
+                                    originalBuffer,
+                                    originalSize,
+                                    randomLineIndexDestination,
+                                    numberOfLinesAfterIndex)};
+
+    // The new buffer will be one line larger than the original buffer;
+    // additionally, it will contain one additional byte since a null-terminator will be appended to the end.
+
+    const size_t newBufferSize{originalSize + lineDataSource.Size + 1u};
+
+    // Allocate the new buffer and set it's elements to zero.
+
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
+    memset(newBuffer, 0u, newBufferSize);
+
+    // Copy data from the original buffer into the new buffer, but copy the random line.
+    // The last element in the new buffer is skipped since it was implicitly set to zero during allocation.
+
+    for(size_t sourceIndex{0u}, destinationIndex{0u}; sourceIndex < originalSize; ++sourceIndex)
+    {
+        if(sourceIndex == lineDataDestination.StartIndex)
+        {
+            memcpy(&newBuffer[destinationIndex], &originalBuffer[lineDataSource.StartIndex], lineDataSource.Size);
+
+            destinationIndex += lineDataSource.Size;
+        }
+
+        newBuffer[destinationIndex] = originalBuffer[sourceIndex];
+
+        ++destinationIndex;
+    }
 }

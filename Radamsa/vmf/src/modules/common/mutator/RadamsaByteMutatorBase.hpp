@@ -30,14 +30,14 @@
 
 #pragma once
 
-#include "mutationBase.hpp"
+#include "RadamsaMutatorBase.hpp"
 
 namespace vmf
 {
 /**
  *
  */
-class RadamsaByteMutatorBase: public MutationBase
+class RadamsaByteMutatorBase: public RadamsaMutatorBase
 {
 public:
     static size_t GetRandomByteRepetitionLength(VmfRand* rand) noexcept
