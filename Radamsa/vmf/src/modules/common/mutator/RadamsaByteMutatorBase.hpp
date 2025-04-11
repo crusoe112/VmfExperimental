@@ -40,7 +40,7 @@ namespace vmf
 class RadamsaByteMutatorBase: public RadamsaMutatorBase
 {
 public:
-    static size_t GetRandomByteRepetitionLength(VmfRand* rand) noexcept
+    static size_t GetRandomRepetitionLength(VmfRand* rand) noexcept
     {
         constexpr size_t MINIMUM_UPPER_LIMIT{0x2u};
         constexpr size_t MAXIMUM_UPPER_LIMIT{0x20000u};
