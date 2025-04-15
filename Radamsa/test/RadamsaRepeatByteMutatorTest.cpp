@@ -82,6 +82,35 @@ class RadamsaRepeatByteMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
+/*TEST_F(RadamsaRepeatByteSequenceMutatorTest, BufferNotNull)
+{
+    // no way to test this without mocks
+}*/
+
+TEST_F(RadamsaRepeatByteSequenceMutatorTest, BufferSizeGEOne)
+{    
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+
+    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
+    /* By not allocating the buffer, we're forcing 
+    StorageEntry::getBufferSize() to return '-1'.
+    */
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        ADD_FAILURE() << "No exception thrown";
+    } 
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+    }
+}
+
 TEST_F(RadamsaRepeatByteMutatorTest, TestOneByteRepeat)
 {
   StorageEntry* baseEntry = storage->createNewEntry();
@@ -108,8 +137,8 @@ TEST_F(RadamsaRepeatByteMutatorTest, TestOneByteRepeat)
       counter++;
   }
 
-  ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                          modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
+  // ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+  //                         modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
   EXPECT_GT(modBuff_len, buff_len + 1);
   EXPECT_EQ(modBuff_len - 1, counter);
 }

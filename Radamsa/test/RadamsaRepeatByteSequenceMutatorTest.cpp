@@ -146,3 +146,96 @@ TEST_F(RadamsaRepeatByteSequenceMutatorTest, BufferSizeGETwo)
     }
 }
 
+TEST_F(RadamsaRepeatByteSequenceMutatorTest, TwoBytes)
+{   
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+
+    const size_t buff_len = 2;
+    char* modBuff;
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    buff[0] = '4';
+    buff[1] = '5';
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    std::string modString = std::string(modBuff);
+    size_t occ[buff_len] = {};
+
+    for(size_t i = 0; i < modBuff_len; ++i) {
+        if(modBuff[i] == '4') {
+            occ[0]++;
+        }
+        else if(modBuff[i] == '5') {
+            occ[1]++;
+        }
+    }
+
+    // test buff ne
+    // ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+    //                         modBuff,    modBuff + modBuff_len - 1)
+    //             );
+    // test buff len (should be divisible by buff_len, with remainder for null-terminator)
+    EXPECT_EQ(modBuff_len % buff_len, 1);
+    // test buff contents
+    EXPECT_TRUE(occ[0] > 1 && occ[1] > 1 && occ[0] == occ[1]);
+}
+
+TEST_F(RadamsaRepeatByteSequenceMutatorTest, ThreeBytes)
+{   
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+
+    const size_t buff_len = 3;
+    char* modBuff;
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    buff[0] = '4';
+    buff[1] = '5';
+    buff[2] = '6';
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    std::string modString = std::string(modBuff);
+    size_t occ[buff_len] = {};
+
+    for(size_t i = 0; i < modBuff_len; ++i) {
+        if(modBuff[i] == '4') {
+            occ[0]++;
+        }
+        else if(modBuff[i] == '5') {
+            occ[1]++;
+        }
+        else if(modBuff[i] == '6') {
+            occ[2]++;
+        }
+    }
+
+    // test buff ne
+    // ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
+    //                         modBuff,    modBuff + modBuff_len - 1)
+    //             );
+    // test buff len
+    EXPECT_TRUE(modBuff_len % 2 == 0 || modBuff_len % 3 == 1);
+    // test buff contents
+    EXPECT_TRUE(
+        (occ[0] > 1  && occ[1] > 1 && occ[2] == 1 && occ[1] == occ[2]) ||    // 45 repeated
+        (occ[0] == 1 && occ[1] > 1 && occ[2] > 1  && occ[1] == occ[2]) ||    // 56 repeated
+        (occ[0] > 1  && occ[1] > 1 && occ[2] > 1  && occ[0] == occ[1] && occ[1] == occ[2])  // 456 repeated
+    );
+}

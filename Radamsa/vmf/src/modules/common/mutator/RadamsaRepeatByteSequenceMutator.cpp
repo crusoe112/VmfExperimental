@@ -91,5 +91,60 @@ void RadamsaRepeatByteSequenceMutator::registerStorageNeeds(StorageRegistry& reg
 
 void RadamsaRepeatByteSequenceMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // TODO: mutator description
+
+    constexpr size_t minimumSize{2u};
+    const size_t minimumSeedIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+
+    if (minimumSeedIndex > originalSize - 1u)
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    if (originalBuffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    
+
+    // Select random indexes for the start and end of the sequence
+    const size_t start_lower{0u};
+    const size_t start_upper{originalSize - 1u - 1u}; // additional -1 to leave at least one byte at the end
+    const size_t start_index{rand->randBetween(start_lower, start_upper)};
+
+    const size_t end_lower{start_index + 1u};
+    const size_t end_upper{originalSize - 1u};
+    const size_t end_index{rand->randBetween(end_lower, end_upper)};
+
+    // Get random number of sequence repetitions
+    const size_t numberOfRepetitions{GetRandomRepetitionLength(rand)};
+
+    // Calculate the size of the modified buffer
+    const size_t seq_len{end_index - start_index + 1u};
+    const size_t newBufferSize{originalSize + (seq_len * numberOfRepetitions) + 1u}; // +1 because we're appending a null-terminator
+
+    // Allocate the new buffer and set it's elements to zero.
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, static_cast<int>(newBufferSize))};
+    memset(newBuffer, 0u, newBufferSize);
+
+    // Copy pre-sequence into modified buffer
+    memcpy(newBuffer, originalBuffer, start_index);
+
+    // Copy post-sequence into modified buffer
+    memcpy(
+        newBuffer, 
+        originalBuffer + start_index + (seq_len * numberOfRepetitions), 
+        originalSize - end_index - 1u
+    );
+
+    // Fill the rest with the byte sequence
+    for (size_t i = 1; i < numberOfRepetitions; ++i) {
+        memcpy(
+            newBuffer + start_index + (i * seq_len), 
+            originalBuffer + start_index, 
+            seq_len
+        );
+    }
 }
