@@ -31,6 +31,7 @@
 #include "ModuleTestHelper.hpp"
 #include "SimpleStorage.hpp"
 #include "RadamsaRepeatByteMutator.hpp"
+#include "RuntimeException.hpp"
 
 using vmf::StorageModule;
 using vmf::StorageRegistry;
@@ -40,6 +41,7 @@ using vmf::SimpleStorage;
 using vmf::StorageEntry;
 using vmf::RadamsaRepeatByteMutator;
 using vmf::BaseException;
+using vmf::RuntimeException;
 
 class RadamsaRepeatByteMutatorTest : public ::testing::Test {
   protected:
@@ -82,12 +84,12 @@ class RadamsaRepeatByteMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
-/*TEST_F(RadamsaRepeatByteSequenceMutatorTest, BufferNotNull)
+/*TEST_F(RadamsaRepeatByteMutatorTest, BufferNotNull)
 {
     // no way to test this without mocks
 }*/
 
-TEST_F(RadamsaRepeatByteSequenceMutatorTest, BufferSizeGEOne)
+TEST_F(RadamsaRepeatByteMutatorTest, BufferSizeGEOne)
 {    
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
