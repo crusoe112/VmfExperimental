@@ -91,7 +91,7 @@ void RadamsaRepeatByteSequenceMutator::registerStorageNeeds(StorageRegistry& reg
 
 void RadamsaRepeatByteSequenceMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: mutator description
+    // select a random number of consecutive bytes and repeat them a random number of times
 
     constexpr size_t minimumSize{2u};
     const size_t minimumSeedIndex{0u};

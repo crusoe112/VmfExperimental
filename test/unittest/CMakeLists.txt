@@ -48,6 +48,7 @@ SET(TEST_SRCS
   ../../Radamsa/test/RadamsaRepeatLineMutatorTest.cpp
   ../../Radamsa/test/RadamsaSwapLineMutatorTest.cpp
   ../../Radamsa/test/RadamsaRepeatByteSequenceMutatorTest.cpp
+  ../../Radamsa/test/RadamsaDeleteByteSequenceMutatorTest.cpp
 )
 
 add_executable(VmfTest ${TEST_SRCS})
