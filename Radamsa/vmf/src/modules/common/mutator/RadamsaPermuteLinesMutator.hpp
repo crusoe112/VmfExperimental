@@ -39,15 +39,15 @@ namespace vmf
 /**
  *
  */
-class RadamsaSwapLineOrderMutator: public MutatorModule, public RadamsaByteMutatorBase
+class RadamsaPermuteLinesMutator: public MutatorModule, public RadamsaByteMutatorBase
 {
     public:
 
         static Module* build(std::string name);
         virtual void init(ConfigInterface& config);
 
-        RadamsaSwapLineOrderMutator(std::string name);
-        virtual ~RadamsaSwapLineOrderMutator();
+        RadamsaPermuteLinesMutator(std::string name);
+        virtual ~RadamsaPermuteLinesMutator();
         virtual void registerStorageNeeds(StorageRegistry& registry);
         virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
 

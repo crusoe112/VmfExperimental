@@ -45,7 +45,7 @@ add_library(Radamsa SHARED
   common/mutator/RadamsaSwapLineMutator.cpp
   common/mutator/RadamsaRepeatByteSequenceMutator.cpp       # -sr
   common/mutator/RadamsaDeleteByteSequenceMutator.cpp       # -sd
-  common/mutator/RadamsaSwapLineOrderMutator.cpp            # -lp
+  common/mutator/RadamsaPermuteLinesMutator.cpp             # -lp
   common/mutator/RadamsaInsertLineFromElsewhereMutator.cpp  # -lis
   common/mutator/RadamsaReplaceLineFromElsewhereMutator.cpp # -lrs
   common/mutator/RadamsaDeleteNodeMutator.cpp               # -td

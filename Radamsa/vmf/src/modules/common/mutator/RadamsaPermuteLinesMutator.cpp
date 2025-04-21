@@ -29,7 +29,7 @@
  /**
   *
   */
-#include "RadamsaSwapLineOrderMutator.hpp"
+#include "RadamsaPermuteLinesMutator.hpp"
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
@@ -37,16 +37,16 @@
 using namespace vmf;
 
 #include "ModuleFactory.hpp"
-REGISTER_MODULE(RadamsaSwapLineOrderMutator);
+REGISTER_MODULE(RadamsaPermuteLinesMutator);
 
 /**
  * @brief Builder method to support the ModuleFactory
  * Constructs an instance of this class
  * @return Module* - Pointer to the newly created instance
  */
-Module* RadamsaSwapLineOrderMutator::build(std::string name)
+Module* RadamsaPermuteLinesMutator::build(std::string name)
 {
-    return new RadamsaSwapLineOrderMutator(name);
+    return new RadamsaPermuteLinesMutator(name);
 }
 
 /**
@@ -54,26 +54,26 @@ Module* RadamsaSwapLineOrderMutator::build(std::string name)
  *
  * @param config - Configuration object
  */
-void RadamsaSwapLineOrderMutator::init(ConfigInterface& config)
+void RadamsaPermuteLinesMutator::init(ConfigInterface& config)
 {
 
 }
 
 /**
- * @brief Construct a new RadamsaSwapLineOrderMutator::RadamsaSwapLineOrderMutator object
+ * @brief Construct a new RadamsaPermuteLinesMutator::RadamsaPermuteLinesMutator object
  *
  * @param name The of the name module
  */
-RadamsaSwapLineOrderMutator::RadamsaSwapLineOrderMutator(std::string name) : MutatorModule(name)
+RadamsaPermuteLinesMutator::RadamsaPermuteLinesMutator(std::string name) : MutatorModule(name)
 {
     // rand->randInit();
 }
 
 /**
- * @brief Destroy the RadamsaSwapLineOrderMutator::RadamsaSwapLineOrderMutator object
+ * @brief Destroy the RadamsaPermuteLinesMutator::RadamsaPermuteLinesMutator object
  *
  */
-RadamsaSwapLineOrderMutator::~RadamsaSwapLineOrderMutator()
+RadamsaPermuteLinesMutator::~RadamsaPermuteLinesMutator()
 {
 
 }
@@ -83,13 +83,13 @@ RadamsaSwapLineOrderMutator::~RadamsaSwapLineOrderMutator()
  *
  * @param registry - StorageRegistry object
  */
-void RadamsaSwapLineOrderMutator::registerStorageNeeds(StorageRegistry& registry)
+void RadamsaPermuteLinesMutator::registerStorageNeeds(StorageRegistry& registry)
 {
     // This module does not register for a test case buffer key, because mutators are told which buffer to write in storage
     // by the input generator that calls them
 }
 
-void RadamsaSwapLineOrderMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
+void RadamsaPermuteLinesMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
     // TODO: Add the mutator contents here
 }
