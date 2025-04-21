@@ -91,5 +91,74 @@ void RadamsaPermuteLinesMutator::registerStorageNeeds(StorageRegistry& registry)
 
 void RadamsaPermuteLinesMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // Randomize the order of given lines
+
+    const size_t minimumSize{3u};   // minimal case consists of three newlines
+    const size_t minimumLines{3u};  // for two lines, just use SwapLine
+    const size_t minimumSeedIndex{0u};
+    const size_t characterIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    const size_t numLines{
+                    GetNumberOfLinesAfterIndex(
+                                        originalBuffer,
+                                        originalSize,
+                                        characterIndex)};
+
+    if (originalSize < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 3", RuntimeException::USAGE_ERROR};
+
+    if (minimumSeedIndex > originalSize - 1u)
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    if (originalBuffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    if (numLines < minimumLines) {
+        throw RuntimeException{"The buffer's minimum number of lines must be greater than or equal to 3", RuntimeException::USAGE_ERROR};
+    }
+
+    // create and initialize vectors of indeces and lines
+    std::vector<size_t> lineOrder(numLines);
+    std::vector<Line> lines(numLines);
+    for(size_t i{0}; i < numLines; ++i) {
+        lineOrder[i] = i;
+        lines[i] = GetLineData(
+                            originalBuffer,
+                            originalSize,
+                            i,
+                            numLines);
+    }
+
+    // randomize the line order
+    // homebrew Fisher-Yates shuffle because std::shuffle can't use VmfRand
+    std::vector<Line> shuffledLines(numLines);
+    for(size_t i{numLines - 1}; i > 0; --i) {
+        size_t randIndex = this->rand->randBetween(0, i);
+
+        // swap index values
+        const size_t temp = lineOrder[i];
+        lineOrder[i] = lineOrder[randIndex];
+        lineOrder[randIndex] = temp;
+
+        // copy into shuffled order
+        shuffledLines[i] = lines[lineOrder[i]];
+    }    
+
+    // create new buffer with modified order
+    const size_t newBufferSize{originalSize + 1u};  // +1 to implicitly append null terminator
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, static_cast<int>(newBufferSize))};
+    memset(newBuffer, 0u, newBufferSize);
+    for(
+        size_t i{0}, nextBufferIndex{0}; 
+        i < numLines; 
+        nextBufferIndex += lines[lineOrder[i]].Size, ++i
+    ) {
+        memcpy(
+            newBuffer + nextBufferIndex, 
+            originalBuffer + lines[lineOrder[i]].StartIndex, 
+            lines[lineOrder[i]].Size
+        );
+    }
 }
