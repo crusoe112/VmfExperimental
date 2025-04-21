@@ -465,10 +465,5 @@ public:
 
         return nBitValue;
     }
-
-    void PermuteLine()
-    {
-        //TODO
-    }
 };
 }

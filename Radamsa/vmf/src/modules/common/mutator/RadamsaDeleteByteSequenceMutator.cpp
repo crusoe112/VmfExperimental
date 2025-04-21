@@ -91,7 +91,6 @@ void RadamsaDeleteByteSequenceMutator::registerStorageNeeds(StorageRegistry& reg
 
 void RadamsaDeleteByteSequenceMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
     // select a random number of consecutive bytes and remove them
 
     constexpr size_t minimumSize{2u};
