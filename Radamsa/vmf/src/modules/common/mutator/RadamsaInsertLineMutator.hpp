@@ -31,7 +31,7 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
-#include "RadamsaByteMutatorBase.hpp"
+#include "RadamsaLineMutatorBase.hpp"
 #include "VmfRand.hpp"
 
 namespace vmf
@@ -39,15 +39,15 @@ namespace vmf
 /**
  *
  */
-class RadamsaInsertLineFromElsewhereMutator: public MutatorModule, public RadamsaByteMutatorBase
+class RadamsaInsertLineMutator: public MutatorModule, public RadamsaLineMutatorBase
 {
     public:
 
         static Module* build(std::string name);
         virtual void init(ConfigInterface& config);
 
-        RadamsaInsertLineFromElsewhereMutator(std::string name);
-        virtual ~RadamsaInsertLineFromElsewhereMutator();
+        RadamsaInsertLineMutator(std::string name);
+        virtual ~RadamsaInsertLineMutator();
         virtual void registerStorageNeeds(StorageRegistry& registry);
         virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
 
