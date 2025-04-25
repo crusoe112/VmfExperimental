@@ -13,12 +13,9 @@ RUN  apt-get update \
 RUN  apt-get update \
      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --fix-missing \
        graphviz \
-       clang-16 \
        clang \
        doxygen \
        libcurl4-openssl-dev \
-       llvm-16 \
-       llvm-16-dev \
        llvm \
        llvm-dev \
        lld \
@@ -50,26 +47,29 @@ RUN set -ex \
     && cd VaderModularFuzzer \
     && mkdir -p build \
     && cd build \
-    && cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. \
+    && cmake -DCMAKE_INSTALL_PREFIX=/usr/local/src/VaderModularFuzzer .. \
     && make -j \
     && make install \
     && set +ex
     
-# Copy, build, install VmfExperimental
+# Copy VmfExperimental
 COPY . /usr/local/src/VmfExperimental
 
 RUN set -ex \
     && cd /usr/local/src/VmfExperimental \
     && mkdir build \
     && cd build \
-    && cmake -DVMF_INSTALL=/usr/local .. \
-    && make && make install \
+    && cmake -DVMF_INSTALL=/usr/local/src/VaderModularFuzzer .. \
+    && make -j && make install \
     && set +ex
 
-# Create experimental config file
-RUN set -ex \
-    && cd /usr/local/test/config \
-    && cp /usr/local/src/VmfExperimental/Radamsa/test/config/experimentalModules.yaml /usr/local/test/config/ \
-    && set +ex
+# # Create experimental config file
+# RUN set -ex \
+#     && cd /usr/local/test/config \
+#     && cp /usr/local/src/VmfExperimental/Radamsa/test/config/experimentalModules.yaml /usr/local/test/config/ \
+#     && set +ex
 
-CMD bash
+# CMD bash
+# ENTRYPOINT [ "ls", "-la" ]
+WORKDIR /usr/local/src/VmfExperimental/build
+ENTRYPOINT [ "ctest", "--output-on-failure" ]

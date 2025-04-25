@@ -82,3 +82,9 @@ To build and run
 ```bash
 cmake -DVMF_INSTALL=<path to VMF install> .. && make -j8 && ctest
 ```
+
+### Running the Unit Tests (Docker)
+From the VmfExperimental Directory on the HOS, run the following command via Bash / Powershell 7+
+```powershell
+docker build -t vmfexp -f ./dockerfiles/Dockerfile . && docker run --rm vmfexp
+```
