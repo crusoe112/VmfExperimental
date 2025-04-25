@@ -93,7 +93,7 @@ void RadamsaInsertLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
 {
     // Insert a random existing line into a random place
 
-    const size_t minimumSize{1};   // minimal case consists of one newline
+    const size_t minimumSize{2};   // minimal case consists of two newlines
     const size_t minimumLines{2};
     const size_t minimumSeedIndex{0u};
     const size_t characterIndex{0u};

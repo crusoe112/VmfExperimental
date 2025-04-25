@@ -99,15 +99,19 @@ class RadamsaInsertLineMutatorTest : public ::testing::Test {
     // no way to test this without mocks
 }*/
 
-TEST_F(RadamsaInsertLineMutatorTest, ZeroBytes)
+TEST_F(RadamsaInsertLineMutatorTest, OneByte)
 {   
+    std::string buffString = "\n";
+
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
 
-    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
-    /* By not allocating the buffer, we're forcing 
-    StorageEntry::getBufferSize() to return '-1'.
-    */
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
