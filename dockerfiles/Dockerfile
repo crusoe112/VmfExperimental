@@ -41,16 +41,29 @@ RUN set -ex \
 FROM aflpp AS vmf
 
 # Clone, build, install VMF
+# TODO temp fix until we update for 5.0.0
 RUN set -ex \
     && cd /usr/local/src \
-    && git clone --depth 1 https://github.com/draperlaboratory/vadermodularfuzzer.git VaderModularFuzzer\
+    && git clone https://github.com/draperlaboratory/vadermodularfuzzer.git VaderModularFuzzer\
     && cd VaderModularFuzzer \
+    && git checkout 4a8b07b6fb4b53ee11f6dee0c0a67d1d4ec7c38d \
     && mkdir -p build \
     && cd build \
-    && cmake -DCMAKE_INSTALL_PREFIX=/usr/local/src/VaderModularFuzzer .. \
+    && cmake .. \
     && make -j \
     && make install \
     && set +ex
+
+# RUN set -ex \
+#     && cd /usr/local/src \
+#     && git clone --depth 1 https://github.com/draperlaboratory/vadermodularfuzzer.git VaderModularFuzzer\
+#     && cd VaderModularFuzzer \
+#     && mkdir -p build \
+#     && cd build \
+#     && cmake .. \
+#     && make -j \
+#     && make install \
+#     && set +ex
     
 # Copy VmfExperimental
 COPY . /usr/local/src/VmfExperimental
@@ -59,7 +72,7 @@ RUN set -ex \
     && cd /usr/local/src/VmfExperimental \
     && mkdir build \
     && cd build \
-    && cmake -DVMF_INSTALL=/usr/local/src/VaderModularFuzzer .. \
+    && cmake -DVMF_INSTALL=/usr/local/src/VaderModularFuzzer/build/vmf_install .. \
     && make -j && make install \
     && set +ex
 
@@ -69,7 +82,5 @@ RUN set -ex \
 #     && cp /usr/local/src/VmfExperimental/Radamsa/test/config/experimentalModules.yaml /usr/local/test/config/ \
 #     && set +ex
 
-# CMD bash
-# ENTRYPOINT [ "ls", "-la" ]
 WORKDIR /usr/local/src/VmfExperimental/build
 ENTRYPOINT [ "ctest", "--output-on-failure" ]
