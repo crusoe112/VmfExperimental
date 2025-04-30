@@ -28,8 +28,7 @@ VaderModularFuzzer repository:
 ## Building and installing experimental module packages
 VMF is built using CMake
 
-Building the Experimental repository also requires an installed instance of VMF. It may be installed
-in a public location like `/usr/local/vmf` or in the default location within a VMF source tree like
+Building the Experimental repository also requires an installed instance of VMF. It must be installed in the default location within a VMF source tree, like
 `/home/userdir/VaderModularFuzzer/build/vmf_install`. Specify the full path to the VMF install using
 `-DVMF_INSTALL=/path/to/VMF`.
 

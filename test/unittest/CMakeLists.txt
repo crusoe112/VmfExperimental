@@ -31,8 +31,8 @@
 find_package(Threads REQUIRED)
 
 SET(TEST_SRCS
-  ${VMF_INSTALL}/test/unittest/ModuleTestHelper.cpp
-  ${VMF_INSTALL}/test/unittest/TestConfigInterface.cpp
+  ${VMF_INSTALL}/../../test/unittest/ModuleTestHelper.cpp
+  ${VMF_INSTALL}/../../test/unittest/TestConfigInterface.cpp
   ../../Radamsa/test/RadamsaDecrementByteMutatorTest.cpp
   ../../Radamsa/test/RadamsaDropByteMutatorTest.cpp
   ../../Radamsa/test/RadamsaFlipByteMutatorTest.cpp
@@ -51,6 +51,7 @@ SET(TEST_SRCS
   ../../Radamsa/test/RadamsaDeleteByteSequenceMutatorTest.cpp
   ../../Radamsa/test/RadamsaPermuteLinesMutatorTest.cpp
   ../../Radamsa/test/RadamsaInsertLineMutatorTest.cpp
+  ../../Radamsa/test/RadamsaReplaceLineMutatorTest.cpp
 )
 
 add_executable(VmfTest ${TEST_SRCS})
@@ -59,17 +60,18 @@ set_target_properties(VmfTest PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories(VmfTest PUBLIC
   ${VMF_INSTALL}/include
-  ${VMF_INSTALL}/vmf/dependencies/googletest/googletest/include
-  ${VMF_INSTALL}/test/unittest
-  ${VMF_INSTALL}/vmf/src/framework/baseclasses
-  ${VMF_INSTALL}/vmf/src/framework/util
+  ${VMF_INSTALL}/../../vmf
+  ${VMF_INSTALL}/../../vmf/dependencies/googletest/googletest/include
+  ${VMF_INSTALL}/../../test/unittest
+  ${VMF_INSTALL}/../../vmf/src/framework/baseclasses
+  ${VMF_INSTALL}/../../vmf/src/framework/util
   ../../Radamsa/vmf/src/modules/common/mutator
 )
 
 target_link_directories(VmfTest PUBLIC
   ${VMF_INSTALL}/lib
   ${VMF_INSTALL}/plugins
-  ${VMF_INSTALL}/build/lib
+  ${VMF_INSTALL}/../lib
 )
 
 target_link_libraries(VmfTest
