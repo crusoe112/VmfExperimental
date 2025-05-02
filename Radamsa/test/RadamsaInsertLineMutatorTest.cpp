@@ -227,13 +227,6 @@ TEST_F(RadamsaInsertLineMutatorTest, ThreeLines)
     //             );
     // test buff len
     EXPECT_GT(modBuff_len, buff_len + 1);
-    // test buff contents
-    // EXPECT_TRUE(
-    //     modString == "GHI\nGHI\nJK\n" ||    // 112
-    //     modString == "GHI\nJK\nGHI\n" ||    // 121
-    //     modString == "JK\nGHI\nJK\n" ||     // 212
-    //     modString == "GHI\nJK\nJK\n"        // 122
-    // ) << "modString = \"" + modString + "\"";
     EXPECT_TRUE(
         modString == "GHI\nGHI\nJK\nL\n" ||  // 1123
         modString == "GHI\nJK\nGHI\nL\n" ||  // 1213

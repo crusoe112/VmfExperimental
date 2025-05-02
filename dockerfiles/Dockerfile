@@ -53,17 +53,6 @@ RUN set -ex \
     && make -j \
     && make install \
     && set +ex
-
-# RUN set -ex \
-#     && cd /usr/local/src \
-#     && git clone --depth 1 https://github.com/draperlaboratory/vadermodularfuzzer.git VaderModularFuzzer\
-#     && cd VaderModularFuzzer \
-#     && mkdir -p build \
-#     && cd build \
-#     && cmake .. \
-#     && make -j \
-#     && make install \
-#     && set +ex
     
 # Copy VmfExperimental
 COPY . /usr/local/src/VmfExperimental

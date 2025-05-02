@@ -107,7 +107,7 @@ void RadamsaInsertLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
                                         characterIndex)};
 
     if (originalSize < minimumSize)
-        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
 
     if (minimumSeedIndex > originalSize - 1u)
         throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
@@ -116,7 +116,7 @@ void RadamsaInsertLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
         throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
 
     if (numLines < minimumLines) {
-        throw RuntimeException{"The buffer's minimum number of lines must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+        throw RuntimeException{"The buffer's minimum number of lines must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
     }
 
     std::vector<size_t> lineOrder(numLines);
