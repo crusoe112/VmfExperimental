@@ -135,7 +135,9 @@ void RadamsaPermuteLinesMutator::mutateTestCase(StorageModule& storage, StorageE
     // homebrew Fisher-Yates shuffle because std::shuffle can't use VmfRand
     std::vector<Line> shuffledLines(numLines);
     for(size_t i{numLines - 1}; i > 0; --i) {
-        size_t randIndex = this->rand->randBetween(0, i);
+        long unsigned int min = 0;
+        long unsigned int max = static_cast<long unsigned int>(i);
+        size_t randIndex = this->rand->randBetween(min, max);
 
         // swap index values
         const size_t temp = lineOrder[i];
