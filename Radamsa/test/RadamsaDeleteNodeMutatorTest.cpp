@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ModuleTestHelper.hpp"
 #include "SimpleStorage.hpp"
-#include "RadamsaDeleteLineMutator.hpp"
+#include "RadamsaDeleteNodeMutator.hpp"
 #include "RuntimeException.hpp"
 
 using vmf::StorageModule;
@@ -39,23 +39,23 @@ using vmf::ModuleTestHelper;
 using vmf::TestConfigInterface;
 using vmf::SimpleStorage;
 using vmf::StorageEntry;
-using vmf::RadamsaDeleteLineMutator;
+using vmf::RadamsaDeleteNodeMutator;
 using vmf::BaseException;
 using vmf::RuntimeException;
 
-class RadamsaDeleteLineMutatorTest : public ::testing::Test {
+class RadamsaDeleteNodeMutatorTest : public ::testing::Test {
   protected:
-    RadamsaDeleteLineMutatorTest() 
+    RadamsaDeleteNodeMutatorTest() 
     {
       storage = new SimpleStorage("storage");
       registry = new StorageRegistry("TEST_INT", StorageRegistry::INT, StorageRegistry::ASCENDING);
       metadata = new StorageRegistry();
       testHelper = new ModuleTestHelper();
-      theMutator = new RadamsaDeleteLineMutator("RadamsaDeleteLineMutator");
+      theMutator = new RadamsaDeleteNodeMutator("RadamsaDeleteNodeMutator");
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaDeleteLineMutatorTest() override {}
+    ~RadamsaDeleteNodeMutatorTest() override {}
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -77,7 +77,7 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
       theMutator->init(*config);
       theMutator->registerStorageNeeds(*registry);
       theMutator->registerMetadataNeeds(*metadata);
-  }
+    }
 
     void TearDown() override {
       delete registry;
@@ -85,7 +85,7 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
       delete storage;
     }
 
-    RadamsaDeleteLineMutator* theMutator;
+    RadamsaDeleteNodeMutator* theMutator;
     StorageModule* storage;
     StorageRegistry* registry;
     StorageRegistry* metadata;
@@ -94,25 +94,21 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
-/*TEST_F(RadamsaDeleteLineMutatorTest, BufferNotNull)
+/*TEST_F(RadamsaDeleteNodeMutatorTest, BufferNotNull)
 {
     // no way to test this without mocks
 }*/
 
-TEST_F(RadamsaDeleteLineMutatorTest, BufferSizeGEOne)
-{    
+TEST_F(RadamsaDeleteNodeMutatorTest, ZeroBytes)
+{   
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
-
-    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
-    /* By not allocating the buffer, we're forcing 
-    StorageEntry::getBufferSize() to return '-1'.
-    */
+    char* modBuff;
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
         ADD_FAILURE() << "No exception thrown";
-    } 
+    }
     catch (RuntimeException e)
     {
         EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
@@ -123,17 +119,19 @@ TEST_F(RadamsaDeleteLineMutatorTest, BufferSizeGEOne)
     }
 }
 
-TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
-{    
+TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
+{   
+    std::string buffString = "4";
+
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
-
-    size_t buff_len = 2;
-    size_t line_len = 2;
     char* modBuff;
+
+    const size_t buff_len = buffString.length();
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    buff[0] = '4';
-    buff[1] = '\n';
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
@@ -144,36 +142,34 @@ TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    std::string modString = std::string(modBuff);
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    std::string modString = std::string(modBuff);
 
-    // EXPECT_FALSE(std::equal(buff,       buff + buff_len, 
-    //                         modBuff,    modBuff + modBuff_len - 1)
-    //             ) << "Modified buffer must not be equal to original buffer";
+    std::cout << "all the way at the end" << std::endl; //    TODO deleteme
+    std::cout << testing::internal::GetCapturedStdout();    //      TODO deleteme
 
-    EXPECT_EQ(buff_len / line_len - 1, 
-              std::count(modBuff, modBuff + buff_len, '\n')
-              ) << "Number of lines in modified buffer must be one less than those in the original buffer";
-
-    EXPECT_EQ(buff_len - line_len + 1, modBuff_len
-             ) << "Modified buffer length must be equal to the original buffer less one line plus one";
-    
-    EXPECT_EQ(modString, "\0");
+    // test buff len
+    EXPECT_TRUE(
+        modBuff_len == buff_len + 1 - 1 ||
+        modBuff_len == buff_len + 1 - 3
+    );
+    // test buff contents
+    EXPECT_EQ(modString[0], '\0');
 }
 
-TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
-{    
+TEST_F(RadamsaDeleteNodeMutatorTest, TwoNodes)
+{   
+    std::string buffString = "43(12)";
+
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
-
-    size_t buff_len = 4;
-    size_t line_len = 2;
     char* modBuff;
+
+    const size_t buff_len = buffString.length();
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    buff[0] = '4';
-    buff[1] = '\n';
-    buff[2] = '5';
-    buff[3] = '\n';
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
@@ -184,56 +180,23 @@ TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    // test buff ne
-    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
-    // test number of lines in buff
-    EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
-    // test buff len
-    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
-    // test buff contents
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
     std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n\0" | 
-                modString == "5\n\0");
+    // throw std::runtime_error(modString); // TODO deleteme
+
+    // test buff len
+    EXPECT_TRUE(
+        modBuff_len == buff_len + 1 - 2 ||
+        modBuff_len == buff_len + 1 - 4
+    );
+    // test buff contents
+    EXPECT_TRUE(
+        modString == "43" ||
+        modString == "12"
+    );
 }
 
-TEST_F(RadamsaDeleteLineMutatorTest, ThreeLines)
-{    
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-
-    size_t buff_len = 6;
-    size_t line_len = 2;
-    char* modBuff;
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    buff[0] = '4';
-    buff[1] = '\n';
-    buff[2] = '5';
-    buff[3] = '\n';
-    buff[4] = '6';
-    buff[5] = '\n';
-
-    try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        modBuff = modEntry->getBufferPointer(testCaseKey);
-    } 
-    catch (BaseException e)
-    {
-        FAIL() << "Exception thrown: " << e.getReason();
-    }
-
-    // test buff ne
-    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
-    // test number of lines in buff
-    EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
-    // test buff len
-    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
-    // test buff contents
-    std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n5\n\0" | 
-                modString == "5\n6\n\0" | 
-                modString == "4\n6\n\0");
+TEST_F(RadamsaDeleteNodeMutatorTest, DanglingOpenBracket)
+{   
+    GTEST_SKIP() << "Not yet implemented";
 }
