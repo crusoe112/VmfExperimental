@@ -59,7 +59,7 @@ public:
     private:
         int findCloseBracketIndex(string treeStr, int i, int maxIndex) {
             if (i > maxIndex) {
-                throw RuntimeException{"All open brackets must be paired with a close bracket", RuntimeException::CONFIGURATION_ERROR};
+                return -1;
             }
 
             for(
@@ -79,7 +79,7 @@ public:
                 }
             }
 
-            throw RuntimeException{"All open brackets must be paired with a close bracket", RuntimeException::CONFIGURATION_ERROR};
+            return -1;
         }
 
         // parses a Tree from a string in the form "root(left subtree)(right subtree)"
@@ -102,9 +102,16 @@ public:
             // if the current node should have at least one child...
             if(treeStr[i] == '(') {
                 int result = findCloseBracketIndex(treeStr, i, maxIndex);
-
-                n->left = buildTree(treeStr, i + 1, result - 1);
-                n->right = buildTree(treeStr, result + 2, maxIndex - 1);
+                if(result >= 0) {
+                    n->left = buildTree(treeStr, i + 1, result - 1);
+                    n->right = buildTree(treeStr, result + 2, maxIndex - 1);
+                }
+                else {
+                    throw RuntimeException{
+                        "All open brackets must be paired with a close bracket", 
+                        RuntimeException::CONFIGURATION_ERROR
+                    };
+                }
             }
 
             return n;
@@ -160,12 +167,15 @@ public:
                 return;
             }
 
+            // will add () if there is no left child, 
+            // but doing so is required to distinguish 
+            // between left and right children for this case
             s.push_back('(');
             toString(n->left, s);
             s.push_back(')');
 
-            // this check prevents extra brackets with nothing in them (not necessary for left side)
-            if(n->right) {
+            // this check prevents empty right children
+            if(n->right != nullptr) {
                 s.push_back('(');
                 toString(n->right, s);
                 s.push_back(')');
@@ -203,50 +213,37 @@ public:
         Node* deleteNodeByValue(Node* n, size_t valueToFind) {
             // we've reached the bottom
             if(n == nullptr) {
-                std::cout << "reached the bottom" << std::endl; //    TODO deleteme
                 return nullptr;
             }
 
-            std::cout << "n->value == " + std::to_string(n->value) << std::endl; //    TODO deleteme
-            std::cout << "valueToFind == " + std::to_string(valueToFind) << std::endl; //    TODO deleteme
-
             // "value" is in left side
             if(n->value > valueToFind) {
-                std::cout << "value is left side" << std::endl; //    TODO deleteme
                 n->left = deleteNodeByValue(n->left, valueToFind);
             }
             // "value" is in right side
             else if(n->value < valueToFind) {
-                std::cout << "value is right side" << std::endl; //    TODO deleteme
                 n->right = deleteNodeByValue(n->right, valueToFind);
             }
             // current node has the value we're looking for
-            else {
-                std::cout << "found value!" << std::endl; //    TODO deleteme
-                
+            else {                
                 if(n->left == nullptr) {
-                    std::cout << "left is null, returning right" << std::endl; //    TODO deleteme
                     return n->right;
                 }
 
                 if(n->right == nullptr) {
-                    std::cout << "right is null, returning left" << std::endl; //    TODO deleteme
                     return n->left;
                 }
 
                 // two childen; swap current with in-order successor
                 Node* successor = n->right;
                 while(successor->left != nullptr) {
-                    std::cout << "grabbing next left..." << std::endl; //    TODO deleteme
                     successor = successor->left;
                 }
-                std::cout << "found successor" << std::endl; //    TODO deleteme
                 n->value = successor->value;
                 n->right = deleteNodeByValue(n->right, successor->value);
 
             }
 
-            std::cout << "made it to the bottom" << std::endl; //    TODO deleteme
             return n;
         }
     

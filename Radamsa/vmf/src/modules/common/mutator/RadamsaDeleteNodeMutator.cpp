@@ -93,7 +93,7 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
 {
     // Delete a random node from the tree
 
-    const size_t minimumSize{1};   // minimal case consists of just the root node
+    const size_t minimumSize{1};   // minimal case consists of a single-character root node
     const size_t minimumSeedIndex{0u};
     const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
     char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
@@ -117,19 +117,14 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
     const size_t nodeIndexToDelete{this->rand->randBetween(lower, upper)};
 
     t.root = t.deleteNodeByIndex(nodeIndexToDelete);
-    std::cout << "new root assigned" << std::endl; //    TODO deleteme
 
     string modTreeString;
     t.toString(t.root, modTreeString);
-    std::cout << "modTreeString == \"" + modTreeString + "\"" << std::endl; //    TODO deleteme
 
     const size_t newBufferSize{modTreeString.length() + 1}; // +1 to implicitly append a null terminator
 
     char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
-    std::cout << "newBuffer allocated" << std::endl; //    TODO deleteme
     memset(newBuffer, 0u, newBufferSize);
-    std::cout << "newBuffer memset done" << std::endl; //    TODO deleteme
 
     std::strcpy(newBuffer, modTreeString.c_str());
-    std::cout << "strcpy done" << std::endl; //    TODO deleteme
 }

@@ -119,6 +119,34 @@ TEST_F(RadamsaDeleteNodeMutatorTest, ZeroBytes)
     }
 }
 
+TEST_F(RadamsaDeleteNodeMutatorTest, DanglingOpenBracket)
+{   
+    std::string buffString = "4(2(3)(7)";
+
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        ADD_FAILURE() << "No exception thrown";
+    }
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.CONFIGURATION_ERROR);
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+    }
+}
+
 TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
 {   
     std::string buffString = "4";
@@ -145,9 +173,6 @@ TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
     std::string modString = std::string(modBuff);
 
-    std::cout << "all the way at the end" << std::endl; //    TODO deleteme
-    std::cout << testing::internal::GetCapturedStdout();    //      TODO deleteme
-
     // test buff len
     EXPECT_TRUE(
         modBuff_len == buff_len + 1 - 1 ||
@@ -157,7 +182,7 @@ TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
     EXPECT_EQ(modString[0], '\0');
 }
 
-TEST_F(RadamsaDeleteNodeMutatorTest, TwoNodes)
+TEST_F(RadamsaDeleteNodeMutatorTest, OneChild)
 {   
     std::string buffString = "43(12)";
 
@@ -182,7 +207,6 @@ TEST_F(RadamsaDeleteNodeMutatorTest, TwoNodes)
 
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
     std::string modString = std::string(modBuff);
-    // throw std::runtime_error(modString); // TODO deleteme
 
     // test buff len
     EXPECT_TRUE(
@@ -196,7 +220,81 @@ TEST_F(RadamsaDeleteNodeMutatorTest, TwoNodes)
     );
 }
 
-TEST_F(RadamsaDeleteNodeMutatorTest, DanglingOpenBracket)
+TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren)
 {   
-    GTEST_SKIP() << "Not yet implemented";
+    std::string buffString = "43(12)(56)";
+
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    std::string modString = std::string(modBuff);
+
+    // test buff len
+    EXPECT_TRUE(
+        modBuff_len == buff_len + 1 - 2 ||
+        modBuff_len == buff_len + 1 - 4
+    );
+    // test buff contents
+    EXPECT_TRUE(
+        modString == "43()(56)" ||    // left child delete
+        modString == "43(12)" ||    // right child delete
+        modString == "56(12)"       // root delete
+    );
+}
+
+TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren_OneGrandchild)
+{   
+    std::string buffString = "43(12)(56(50))";
+
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    std::string modString = std::string(modBuff);
+
+    // test buff len
+    EXPECT_TRUE(
+        modBuff_len == buff_len + 1 - 2 ||
+        modBuff_len == buff_len + 1 - 4
+    );
+    // test buff contents
+    EXPECT_TRUE(
+        modString == "43()(56(50))" ||  // left child delete
+        modString == "43(12)(50)" ||    // right child delete
+        modString == "43(12)(56)" ||    // grandchild delete
+        modString == "50(12)(56)"       // root delete
+    );
 }
