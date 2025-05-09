@@ -62,7 +62,8 @@ RUN set -ex \
     && mkdir build \
     && cd build \
     && cmake -DVMF_INSTALL=/usr/local/src/VaderModularFuzzer/build/vmf_install .. \
-    && make -j && make install \
+    && make -j \
+    && make install \
     && set +ex
 
 # # Create experimental config file

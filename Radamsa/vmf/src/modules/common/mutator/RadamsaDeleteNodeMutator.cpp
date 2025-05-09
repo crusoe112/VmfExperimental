@@ -91,7 +91,7 @@ void RadamsaDeleteNodeMutator::registerStorageNeeds(StorageRegistry& registry)
 
 void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // Delete a random node from the tree
+    // Delete a random node from the tree without preserving its children
 
     const size_t minimumSize{1};   // minimal case consists of a single-character root node
     const size_t minimumSeedIndex{0u};
@@ -108,23 +108,22 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
         throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
 
     const std::string treeStr(originalBuffer, originalSize);
-    Tree t(treeStr);
+    Tree tr(treeStr);
 
-    size_t numNodes = t.getSize(t.root);
+    size_t numNodes = tr.countNodes(tr.root);
 
     const size_t lower{0u};
     const size_t upper{numNodes - 1};
     const size_t nodeIndexToDelete{this->rand->randBetween(lower, upper)};
 
-    t.root = t.deleteNodeByIndex(nodeIndexToDelete);
+    tr.deleteNodeByIndex(nodeIndexToDelete);
 
-    string modTreeString;
-    t.toString(t.root, modTreeString);
+    string modTreeStr = tr.toString(tr.root);
 
-    const size_t newBufferSize{modTreeString.length() + 1}; // +1 to implicitly append a null terminator
+    const size_t newBufferSize{modTreeStr.length() + 1}; // +1 to implicitly append a null terminator
 
     char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
     memset(newBuffer, 0u, newBufferSize);
 
-    std::strcpy(newBuffer, modTreeString.c_str());
+    std::strcpy(newBuffer, modTreeStr.c_str());
 }

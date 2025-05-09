@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ModuleTestHelper.hpp"
 #include "SimpleStorage.hpp"
-#include "RadamsaDeleteNodeMutator.hpp"
+#include "RadamsaTreeMutatorBase.hpp"
 #include "RuntimeException.hpp"
 
 using vmf::StorageModule;
@@ -39,79 +39,30 @@ using vmf::ModuleTestHelper;
 using vmf::TestConfigInterface;
 using vmf::SimpleStorage;
 using vmf::StorageEntry;
-using vmf::RadamsaDeleteNodeMutator;
+using vmf::RadamsaTreeMutatorBase;
 using vmf::BaseException;
 using vmf::RuntimeException;
+// using RadamsaTreeMutatorBase::Tree;
 
-class RadamsaDeleteNodeMutatorTest : public ::testing::Test {
+class RadamsaTreeMutatorBaseTest : public ::testing::Test {
   protected:
-    RadamsaDeleteNodeMutatorTest() 
-    {
-      storage = new SimpleStorage("storage");
-      registry = new StorageRegistry("TEST_INT", StorageRegistry::INT, StorageRegistry::ASCENDING);
-      metadata = new StorageRegistry();
-      testHelper = new ModuleTestHelper();
-      theMutator = new RadamsaDeleteNodeMutator("RadamsaDeleteNodeMutator");
-      config = testHelper -> getConfig();
-    }
+    RadamsaTreeMutatorBase::Tree tr;
 
-    ~RadamsaDeleteNodeMutatorTest() override {}
-
-    void SetUp() override {
-      testCaseKey = registry->registerKey(
-          "TEST_CASE", 
-          StorageRegistry::BUFFER, 
-          StorageRegistry::READ_WRITE
-      );
-      // int_key = registry->registerKey(
-      //     "TEST_INT",
-      //     StorageRegistry::INT,
-      //     StorageRegistry::READ_WRITE
-      // );
-      // normalTag = registry->registerTag(
-      //     "RAN_SUCCESSFULLY",
-      //     StorageRegistry::WRITE_ONLY
-      // );
-      // // registry->validateRegistration();
-      storage->configure(registry, metadata);
-      theMutator->init(*config);
-      theMutator->registerStorageNeeds(*registry);
-      theMutator->registerMetadataNeeds(*metadata);
-    }
-
-    void TearDown() override {
-      delete registry;
-      delete metadata;
-      delete storage;
-    }
-
-    RadamsaDeleteNodeMutator* theMutator;
-    StorageModule* storage;
-    StorageRegistry* registry;
-    StorageRegistry* metadata;
-    ModuleTestHelper* testHelper;
-    TestConfigInterface* config;
-    int testCaseKey;
+    RadamsaTreeMutatorBaseTest() {}
+    ~RadamsaTreeMutatorBaseTest() {}
 };
-
-/*TEST_F(RadamsaDeleteNodeMutatorTest, BufferNotNull)
-{
-    // no way to test this without mocks
-}*/
-
-TEST_F(RadamsaDeleteNodeMutatorTest, ZeroBytes)
+/*
+TEST_F(RadamsaTreeMutatorBaseTest, NoRoot)
 {   
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-    char* modBuff;
+    std::string treeStr = "(G)";
 
     try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        tr = RadamsaTreeMutatorBase::Tree(treeStr);
         ADD_FAILURE() << "No exception thrown";
     }
     catch (RuntimeException e)
     {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
     }
     catch (BaseException e)
     {
@@ -119,7 +70,85 @@ TEST_F(RadamsaDeleteNodeMutatorTest, ZeroBytes)
     }
 }
 
-TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
+TEST_F(RadamsaTreeMutatorBaseTest, DanglingCloseBracket)
+{   
+    std::string treeStr = "G)";
+
+    try{
+        tr = RadamsaTreeMutatorBase::Tree(treeStr);
+        ADD_FAILURE() << "No exception thrown";
+    }
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+    }
+}
+
+TEST_F(RadamsaTreeMutatorBaseTest, NonAlphaNumericValue)
+{   
+    std::string treeStr = "$";
+
+    try{
+        tr = RadamsaTreeMutatorBase::Tree(treeStr);
+        ADD_FAILURE() << "No exception thrown";
+    }
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+    }
+}
+
+TEST_F(RadamsaTreeMutatorBaseTest, UnmatchedOpenBracket)
+{   
+    std::string treeStr = "G(";
+
+    try{
+        tr = RadamsaTreeMutatorBase::Tree(treeStr);
+        ADD_FAILURE() << "No exception thrown";
+    }
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+    }
+}*/
+
+TEST_F(RadamsaTreeMutatorBaseTest, JustRoot)
+{   
+    const std::string treeStr = "G";
+
+    try{
+        // tr = std::move(RadamsaTreeMutatorBase::Tree(treeStr));
+        RadamsaTreeMutatorBase::Tree tr;
+        tr = RadamsaTreeMutatorBase::Tree(treeStr);
+        // throw std::runtime_error("after tr instanciation");      //      TODO deleteme
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    // throw std::runtime_error("root not created");      //      TODO deleteme
+    // throw std::runtime_error(tr.root->value);      //      TODO deleteme
+    // std::stringstream ss; ss << tr.root; throw std::runtime_error("root addr: " + ss.str());      //      TODO deleteme
+
+    EXPECT_EQ(treeStr, tr.toString(tr.root));
+}
+
+/*
+
+TEST_F(RadamsaTreeMutatorBaseTest, OneNode)
 {   
     GTEST_SKIP();
     std::string buffString = "4";
@@ -155,7 +184,7 @@ TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
     EXPECT_EQ(modString[0], '\0');
 }
 
-TEST_F(RadamsaDeleteNodeMutatorTest, OneChild)
+TEST_F(RadamsaTreeMutatorBaseTest, OneChild)
 {   
     GTEST_SKIP();
     std::string buffString = "43(12)";
@@ -194,7 +223,7 @@ TEST_F(RadamsaDeleteNodeMutatorTest, OneChild)
     );
 }
 
-TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren)
+TEST_F(RadamsaTreeMutatorBaseTest, TwoChildren)
 {   
     GTEST_SKIP();
     std::string buffString = "43(12)(56)";
@@ -234,7 +263,7 @@ TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren)
     );
 }
 
-TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren_OneGrandchild)
+TEST_F(RadamsaTreeMutatorBaseTest, TwoChildren_OneGrandchild)
 {   
     GTEST_SKIP();
     std::string buffString = "43(12)(56(50))";
@@ -273,4 +302,4 @@ TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren_OneGrandchild)
         modString == "43(12)(56)" ||    // grandchild delete
         modString == "50(12)(56)"       // root delete
     );
-}
+}*/

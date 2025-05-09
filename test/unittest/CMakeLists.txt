@@ -52,6 +52,7 @@ SET(TEST_SRCS
   ../../Radamsa/test/RadamsaPermuteLinesMutatorTest.cpp
   ../../Radamsa/test/RadamsaInsertLineMutatorTest.cpp
   ../../Radamsa/test/RadamsaReplaceLineMutatorTest.cpp
+  ../../Radamsa/test/RadamsaTreeMutatorBaseTest.cpp
   ../../Radamsa/test/RadamsaDeleteNodeMutatorTest.cpp
 )
 

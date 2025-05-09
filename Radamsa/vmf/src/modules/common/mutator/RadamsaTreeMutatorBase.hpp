@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include <stack>
 #include "RadamsaMutatorBase.hpp"
 #include "RuntimeException.hpp"
 #include "VmfRand.hpp"
@@ -39,226 +40,215 @@ using std::string;
 namespace vmf
 {
 /**
- * Binary Search Tree implementation
+ * 
  */
 class RadamsaTreeMutatorBase: public RadamsaMutatorBase
 {
 public:
+    RadamsaTreeMutatorBase() = default;
+    virtual ~RadamsaTreeMutatorBase() = default;
+
     struct Node
     {
-        size_t value;
-        Node* left;
-        Node* right;
+        string value;
+        Node* parent;
+        std::vector<Node*> children;
 
-        Node(size_t value) : value(value), left(nullptr), right(nullptr) {};
+        Node(string v, Node* p = nullptr) : value(v), parent(p) {};
         ~Node() = default;
     };
 
     struct Tree
     {
     private:
-        int findCloseBracketIndex(string treeStr, int i, int maxIndex) {
-            if (i > maxIndex) {
-                return -1;
+        // parses a Tree from a string in the form ""A(B(C)(D))(E)""
+        void buildTree(string treeStr) {
+            // throw std::runtime_error("top of buildTree");      //      TODO deleteme
+            if(treeStr.empty()) {
+                throw RuntimeException{"Tree string is empty", RuntimeException::UNEXPECTED_ERROR};
             }
 
-            for(
-                int j = i, numBracketPairs = 0; 
-                j <= maxIndex; 
-                ++j
-            ) {
-                if (treeStr[j] == '(') {
-                    ++numBracketPairs;
-                }
-                else if(treeStr[j] == ')') {
-                    --numBracketPairs;
+            std::stack<Node*> stk;
+            string value;
+            Node* r = nullptr;
 
-                    if (numBracketPairs == 0) {
-                        return j;
+            for(size_t i = 0; i < treeStr.length(); ++i) {
+                char ch = treeStr[i];
+
+                if(isalnum(ch)) {
+                    value += ch;
+                }
+                else if(ch == '(') {
+                    if(value.empty()) {
+                        throw RuntimeException{"Root declared without a value", RuntimeException::UNEXPECTED_ERROR};
                     }
+
+                    Node* n;
+                    if(stk.empty()) {   // if stack is empty, then this value should be root
+                        n = new Node(value, nullptr);
+                        this->root = n;
+                    }
+                    else {
+                        n = new Node(value, stk.top());
+                        stk.top()->children.push_back(n);
+                    }
+
+                    stk.push(n);
+                    value.clear();
                 }
-            }
+                else if(ch == ')') {
+                    if(stk.empty()) {
+                        throw RuntimeException{"Unmatched open bracket in tree string", RuntimeException::UNEXPECTED_ERROR};
+                    }
 
-            return -1;
-        }
+                    if(!value.empty()) {
+                        Node* n = new Node(value, stk.top());
+                        stk.top()->children.push_back(n);
 
-        // parses a Tree from a string in the form "root(left subtree)(right subtree)"
-        Node* buildTree(string treeStr, int i, int maxIndex) {
-            if (i > maxIndex) {
-                return nullptr;
-            }
+                        value.clear();
+                    }
 
-            // grab current value
-            string valueStr = "";
-            while(i <= maxIndex && treeStr[i] >= '0' && treeStr[i] <= '9') {
-                valueStr += treeStr[i];
-                ++i;
-            }
-            size_t value = static_cast<size_t>(std::stoul(valueStr));
-
-
-            Node* n = new Node(value);
-
-            // if the current node should have at least one child...
-            if(treeStr[i] == '(') {
-                int result = findCloseBracketIndex(treeStr, i, maxIndex);
-                if(result >= 0) {
-                    n->left = buildTree(treeStr, i + 1, result - 1);
-                    n->right = buildTree(treeStr, result + 2, maxIndex - 1);
+                    stk.pop();
                 }
                 else {
-                    throw RuntimeException{
-                        "All open brackets must be paired with a close bracket", 
-                        RuntimeException::CONFIGURATION_ERROR
-                    };
+                    throw RuntimeException{"Unexpected character in tree string", RuntimeException::UNEXPECTED_ERROR};
                 }
             }
 
-            return n;
-        }
-
-        void deleteTree(Node* n) {
-            if(n != nullptr) {
-                deleteTree(n->left);
-                deleteTree(n->right);
-                delete n;
+            if(!stk.empty()) {
+                throw RuntimeException{"Unmatched open bracket in tree string", RuntimeException::UNEXPECTED_ERROR};
             }
+
+            // throw std::runtime_error("before single node tree check");      //      TODO deleteme
+
+            // case for TreeStr consisting of a single root node
+            if(!value.empty() && root == nullptr) {
+                this->root = new Node(value);
+                throw std::runtime_error("root created");      //      TODO deleteme
+            }
+
+            // throw std::runtime_error("after single node tree check");      //      TODO deleteme
+
+            return;
         }
 
-        Node* findByIndex(Node* n, size_t& indexToFind) {
+        void deleteNode(Node* n) {
             if(n == nullptr) {
-                return nullptr;
+                // throw std::runtime_error("node is null, returning");      //      TODO deleteme
+                return;
             }
 
-            // check left side
-            Node* leftResult = findByIndex(n->left, indexToFind);
-            if(leftResult != nullptr) {
-                return leftResult;
+            throw std::runtime_error("before deleting children");      //      TODO deleteme
+            for(Node* child : n->children) {
+                // throw std::runtime_error("before deleting a child");      //      TODO deleteme
+                deleteNode(child);
+                // throw std::runtime_error("after deleting a child");      //      TODO deleteme
             }
-
-            // check yourself
-            if(indexToFind == 0) {
-                return n;
-            }
-
-            // check right side
-            --indexToFind;
-            return findByIndex(n->right, indexToFind);
+            
+            
+            // throw std::runtime_error("before deleting node");      //      TODO deleteme
+            delete n;
         }
     
     public:
         Node* root;
 
         Tree() : root(nullptr) {};
+
         Tree(string treeStr) {
-            root = buildTree(treeStr, 0, treeStr.length() - 1);
+            buildTree(treeStr);
+            // throw std::runtime_error("after buildTree");      //      TODO deleteme
         }
-        ~Tree() {deleteTree(root);};
+        
+        // Move constructor
+        Tree(Tree&& other) noexcept {
+            throw std::runtime_error("top of move constructor");      //      TODO deleteme
+            root = other.root;
+            other.root = nullptr;
+        }
 
-        void toString(Node* n, string& s) {
+        // Move assignment operator
+        Tree& operator=(Tree&& other) noexcept {
+            // throw std::runtime_error("top of move assignment");      //      TODO deleteme
+            if(this != &other) {    // prevents self-assignment
+                deleteNode(root);
+                root = other.root;
+                other.root = nullptr;
+            }
+
+            // throw std::runtime_error("bottom of move assignment");      //      TODO deleteme
+            return *this;
+        }
+
+        ~Tree() {
+            // throw std::runtime_error("top of destructor");      //      TODO deleteme
+            deleteNode(this->root);
+        };
+
+        string toString(Node* n) {
             if(n == nullptr) {
-                return;
+                return "";
             }
 
-            s += std::to_string(n->value);
+            // throw std::runtime_error(n->value);      //      TODO deleteme
+            string treeStr(n->value);
+            // throw std::runtime_error("after");  //          TODO deleteme
 
-            // if there aren't any children...
-            if(n->left == nullptr && n->right == nullptr) {
-                return;
+            if(!n->children.empty()) {
+                treeStr += "(";
+                for(Node* child : n->children) {
+                    treeStr += toString(child);
+                }
+                treeStr += ")";
             }
 
-            // will add () if there is no left child, 
-            // but doing so is required to distinguish 
-            // between left and right children for this case
-            s.push_back('(');
-            toString(n->left, s);
-            s.push_back(')');
-
-            // this check prevents empty right children
-            if(n->right != nullptr) {
-                s.push_back('(');
-                toString(n->right, s);
-                s.push_back(')');
-            }
+            return treeStr;
         }
 
-        size_t getSize(Node* n) {
+        size_t countNodes(Node* n) {
             if(n == nullptr) {
                 return 0u;
             }
 
-            return 1 + getSize(n->left) + getSize(n->right);
-        }
-
-        // insert new node containing "value" into subtree "n"
-        Node* insertNode(Node* n, size_t value) {
-            // If we've reached the bottom, insert it here
-            if(n == nullptr) {
-                return new Node(value);
+            size_t count = 1; // count n itself
+            for(Node* child : n->children) {
+                count += countNodes(child);
             }
 
-            // Duplicates will go in right-hand side
-            if(value < n->value) {
-                n->left = insertNode(n->left, value);
-            }
-            else {
-                n->right = insertNode(n->right, value);
-            }
-
-            // Return modified subtree
-            return n;
-        }
-
-        // remove node containing "valueToFind" from subtree "n"
-        Node* deleteNodeByValue(Node* n, size_t valueToFind) {
-            // we've reached the bottom
-            if(n == nullptr) {
-                return nullptr;
-            }
-
-            // "value" is in left side
-            if(n->value > valueToFind) {
-                n->left = deleteNodeByValue(n->left, valueToFind);
-            }
-            // "value" is in right side
-            else if(n->value < valueToFind) {
-                n->right = deleteNodeByValue(n->right, valueToFind);
-            }
-            // current node has the value we're looking for
-            else {                
-                if(n->left == nullptr) {
-                    return n->right;
-                }
-
-                if(n->right == nullptr) {
-                    return n->left;
-                }
-
-                // two childen; swap current with in-order successor
-                Node* successor = n->right;
-                while(successor->left != nullptr) {
-                    successor = successor->left;
-                }
-                n->value = successor->value;
-                n->right = deleteNodeByValue(n->right, successor->value);
-
-            }
-
-            return n;
+            return count;
         }
     
-        Node* deleteNodeByIndex(size_t indexToFind) {
-            Node* nodeToDelete = findByIndex(root, indexToFind);
-
-            if(nodeToDelete != nullptr) {
-                root = deleteNodeByValue(root, nodeToDelete->value);
+        void deleteNodeByIndex(size_t indexToDelete) {
+            if(this->root == nullptr) {
+                throw RuntimeException{"The tree must have at least one node", RuntimeException::USAGE_ERROR};
             }
 
-            return root;
+            // collect all the nodes
+            std::vector<Node*> nodes;
+            std::stack<Node*> stk;
+            
+            stk.push(this->root);
+            while(!stk.empty()) {
+                Node* curr = stk.top();
+                stk.pop();
+                nodes.push_back(curr);
+
+                for(Node* child : curr->children) {
+                    stk.push(child);
+                }
+            }
+
+            if(indexToDelete < 0 || indexToDelete >= nodes.size()) {
+                throw RuntimeException{"The index to delete is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+            }
+
+            if(indexToDelete == 0) {
+                this->root = nullptr;
+            }
+
+            Node* nodeToDelete = nodes[indexToDelete];
+            deleteNode(nodeToDelete);
         }
     };
-
-    RadamsaTreeMutatorBase() = default;
-    virtual ~RadamsaTreeMutatorBase() = default;
 };
 }
