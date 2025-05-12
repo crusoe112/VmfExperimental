@@ -63,38 +63,51 @@ public:
     private:
         // parses a Tree from a string in the form ""A(B(C)(D))(E)""
         void buildTree(string treeStr) {
-            // throw std::runtime_error("top of buildTree");      //      TODO deleteme
             if(treeStr.empty()) {
                 throw RuntimeException{"Tree string is empty", RuntimeException::UNEXPECTED_ERROR};
             }
 
             std::stack<Node*> stk;
             string value;
-            Node* r = nullptr;
-
             for(size_t i = 0; i < treeStr.length(); ++i) {
                 char ch = treeStr[i];
 
-                if(isalnum(ch)) {
-                    value += ch;
+                if(std::isspace(ch)) {
+                    continue;
                 }
                 else if(ch == '(') {
-                    if(value.empty()) {
-                        throw RuntimeException{"Root declared without a value", RuntimeException::UNEXPECTED_ERROR};
-                    }
+                    if(!value.empty()) {
+                        Node* n;
+                        if(stk.empty()) {
+                            n = new Node(value, nullptr);
+                            this->root = n;
+                        }
+                        else {
+                            n = new Node(value, stk.top());
+                            stk.top()->children.push_back(n);
+                        }
 
-                    Node* n;
-                    if(stk.empty()) {   // if stack is empty, then this value should be root
-                        n = new Node(value, nullptr);
-                        this->root = n;
+                        stk.push(n);
+                        value.clear();
                     }
                     else {
-                        n = new Node(value, stk.top());
-                        stk.top()->children.push_back(n);
-                    }
+                        Node* toPush = nullptr;
+                        // upcomming additional child, re-push root
+                        if(stk.empty() && this->root != nullptr) {
+                            toPush = this->root;
+                        }
+                        // upcomming additional child, re-push the most recently popped node
+                        else if(!stk.empty() && !stk.top()->children.empty()) {
+                            toPush = stk.top()->children.back();
+                        }
 
-                    stk.push(n);
-                    value.clear();
+                        if(toPush != nullptr) {
+                            stk.push(toPush);
+                        }
+                        else {
+                            throw RuntimeException{"Unexpected open bracket without a parent node", RuntimeException::UNEXPECTED_ERROR};
+                        }
+                    }
                 }
                 else if(ch == ')') {
                     if(stk.empty()) {
@@ -111,7 +124,7 @@ public:
                     stk.pop();
                 }
                 else {
-                    throw RuntimeException{"Unexpected character in tree string", RuntimeException::UNEXPECTED_ERROR};
+                    value += ch;
                 }
             }
 
@@ -119,69 +132,66 @@ public:
                 throw RuntimeException{"Unmatched open bracket in tree string", RuntimeException::UNEXPECTED_ERROR};
             }
 
-            // throw std::runtime_error("before single node tree check");      //      TODO deleteme
 
             // case for TreeStr consisting of a single root node
-            if(!value.empty() && root == nullptr) {
+            if(!value.empty() && this->root == nullptr) {
                 this->root = new Node(value);
-                throw std::runtime_error("root created");      //      TODO deleteme
             }
-
-            // throw std::runtime_error("after single node tree check");      //      TODO deleteme
 
             return;
         }
 
         void deleteNode(Node* n) {
             if(n == nullptr) {
-                // throw std::runtime_error("node is null, returning");      //      TODO deleteme
                 return;
             }
 
-            throw std::runtime_error("before deleting children");      //      TODO deleteme
             for(Node* child : n->children) {
-                // throw std::runtime_error("before deleting a child");      //      TODO deleteme
                 deleteNode(child);
-                // throw std::runtime_error("after deleting a child");      //      TODO deleteme
             }
-            
-            
-            // throw std::runtime_error("before deleting node");      //      TODO deleteme
+
+            // erase self from parent's children
+            if(n->parent != nullptr) {
+                auto& parentChildren = n->parent->children;
+                auto it = std::find(parentChildren.begin(), parentChildren.end(), n);
+                if(it != parentChildren.end()) {
+                    parentChildren.erase(it);
+                }
+            }
+
             delete n;
         }
     
     public:
-        Node* root;
+        Node* root = nullptr;
 
-        Tree() : root(nullptr) {};
-
+        Tree() {};
         Tree(string treeStr) {
             buildTree(treeStr);
-            // throw std::runtime_error("after buildTree");      //      TODO deleteme
         }
         
+        // deleting copy constructor and copy assignment to avoid shallow copies
+        Tree(const Tree&) = delete;
+        Tree& operator=(const Tree&) = delete;
+
         // Move constructor
         Tree(Tree&& other) noexcept {
-            throw std::runtime_error("top of move constructor");      //      TODO deleteme
             root = other.root;
             other.root = nullptr;
         }
 
         // Move assignment operator
         Tree& operator=(Tree&& other) noexcept {
-            // throw std::runtime_error("top of move assignment");      //      TODO deleteme
             if(this != &other) {    // prevents self-assignment
                 deleteNode(root);
+
                 root = other.root;
                 other.root = nullptr;
             }
-
-            // throw std::runtime_error("bottom of move assignment");      //      TODO deleteme
             return *this;
         }
 
         ~Tree() {
-            // throw std::runtime_error("top of destructor");      //      TODO deleteme
             deleteNode(this->root);
         };
 
@@ -190,15 +200,11 @@ public:
                 return "";
             }
 
-            // throw std::runtime_error(n->value);      //      TODO deleteme
             string treeStr(n->value);
-            // throw std::runtime_error("after");  //          TODO deleteme
 
-            if(!n->children.empty()) {
+            for(Node* child : n->children) {
                 treeStr += "(";
-                for(Node* child : n->children) {
-                    treeStr += toString(child);
-                }
+                treeStr += toString(child);
                 treeStr += ")";
             }
 
@@ -245,7 +251,6 @@ public:
             if(indexToDelete == 0) {
                 this->root = nullptr;
             }
-
             Node* nodeToDelete = nodes[indexToDelete];
             deleteNode(nodeToDelete);
         }

@@ -48,10 +48,28 @@ class RadamsaTreeMutatorBaseTest : public ::testing::Test {
   protected:
     RadamsaTreeMutatorBase::Tree tr;
 
-    RadamsaTreeMutatorBaseTest() {}
-    ~RadamsaTreeMutatorBaseTest() {}
+    RadamsaTreeMutatorBaseTest() = default;
+    ~RadamsaTreeMutatorBaseTest() = default;
 };
-/*
+
+TEST_F(RadamsaTreeMutatorBaseTest, EmptyTreeStr)
+{   
+    std::string treeStr = "";
+
+    try{
+        tr = RadamsaTreeMutatorBase::Tree(treeStr);
+        ADD_FAILURE() << "No exception thrown";
+    }
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+    }
+}
+
 TEST_F(RadamsaTreeMutatorBaseTest, NoRoot)
 {   
     std::string treeStr = "(G)";
@@ -88,24 +106,6 @@ TEST_F(RadamsaTreeMutatorBaseTest, DanglingCloseBracket)
     }
 }
 
-TEST_F(RadamsaTreeMutatorBaseTest, NonAlphaNumericValue)
-{   
-    std::string treeStr = "$";
-
-    try{
-        tr = RadamsaTreeMutatorBase::Tree(treeStr);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.UNEXPECTED_ERROR);
-    }
-    catch (BaseException e)
-    {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
-    }
-}
-
 TEST_F(RadamsaTreeMutatorBaseTest, UnmatchedOpenBracket)
 {   
     std::string treeStr = "G(";
@@ -122,184 +122,64 @@ TEST_F(RadamsaTreeMutatorBaseTest, UnmatchedOpenBracket)
     {
         FAIL() << "Unexpected Exception thrown: " << e.getReason();
     }
-}*/
+}
 
 TEST_F(RadamsaTreeMutatorBaseTest, JustRoot)
 {   
     const std::string treeStr = "G";
 
     try{
-        // tr = std::move(RadamsaTreeMutatorBase::Tree(treeStr));
-        RadamsaTreeMutatorBase::Tree tr;
-        tr = RadamsaTreeMutatorBase::Tree(treeStr);
-        // throw std::runtime_error("after tr instanciation");      //      TODO deleteme
+        this->tr = RadamsaTreeMutatorBase::Tree(treeStr);
     }
     catch (BaseException e)
     {
         FAIL() << "Exception thrown: " << e.getReason();
     }
-
-    // throw std::runtime_error("root not created");      //      TODO deleteme
-    // throw std::runtime_error(tr.root->value);      //      TODO deleteme
-    // std::stringstream ss; ss << tr.root; throw std::runtime_error("root addr: " + ss.str());      //      TODO deleteme
 
     EXPECT_EQ(treeStr, tr.toString(tr.root));
 }
 
-/*
-
-TEST_F(RadamsaTreeMutatorBaseTest, OneNode)
-{   
-    GTEST_SKIP();
-    std::string buffString = "4";
-
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-    char* modBuff;
-
-    const size_t buff_len = buffString.length();
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    for(size_t i{0}; i < buff_len; ++i) {
-        buff[i] = buffString[i];
-    }
-
-    try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        modBuff = modEntry->getBufferPointer(testCaseKey);
-    } 
-    catch (BaseException e)
-    {
-        FAIL() << "Exception thrown: " << e.getReason();
-    }
-
-    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-    std::string modString = std::string(modBuff);
-
-    // test buff len
-    EXPECT_TRUE(
-        modBuff_len == buff_len + 1 - 1 ||
-        modBuff_len == buff_len + 1 - 3
-    );
-    // test buff contents
-    EXPECT_EQ(modString[0], '\0');
-}
-
 TEST_F(RadamsaTreeMutatorBaseTest, OneChild)
 {   
-    GTEST_SKIP();
-    std::string buffString = "43(12)";
-
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-    char* modBuff;
-
-    const size_t buff_len = buffString.length();
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    for(size_t i{0}; i < buff_len; ++i) {
-        buff[i] = buffString[i];
-    }
+    const std::string treeStr = "GH(IJ)";
 
     try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        modBuff = modEntry->getBufferPointer(testCaseKey);
-    } 
+        this->tr = RadamsaTreeMutatorBase::Tree(treeStr);
+    }
     catch (BaseException e)
     {
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-    std::string modString = std::string(modBuff);
-
-    // test buff len
-    EXPECT_TRUE(
-        modBuff_len == buff_len + 1 - 2 ||
-        modBuff_len == buff_len + 1 - 4
-    );
-    // test buff contents
-    EXPECT_TRUE(
-        modString == "43" ||
-        modString == "12"
-    );
+    EXPECT_EQ(treeStr, tr.toString(tr.root));
 }
 
 TEST_F(RadamsaTreeMutatorBaseTest, TwoChildren)
 {   
-    GTEST_SKIP();
-    std::string buffString = "43(12)(56)";
-
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-    char* modBuff;
-
-    const size_t buff_len = buffString.length();
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    for(size_t i{0}; i < buff_len; ++i) {
-        buff[i] = buffString[i];
-    }
+    const std::string treeStr = "GH(IJ)(KL)";
 
     try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        modBuff = modEntry->getBufferPointer(testCaseKey);
-    } 
+        this->tr = RadamsaTreeMutatorBase::Tree(treeStr);
+    }
     catch (BaseException e)
     {
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-    std::string modString = std::string(modBuff);
-
-    // test buff len
-    EXPECT_TRUE(
-        modBuff_len == buff_len + 1 - 2 ||
-        modBuff_len == buff_len + 1 - 4
-    );
-    // test buff contents
-    EXPECT_TRUE(
-        modString == "43()(56)" ||    // left child delete
-        modString == "43(12)" ||    // right child delete
-        modString == "56(12)"       // root delete
-    );
+    EXPECT_EQ(treeStr, tr.toString(tr.root));
 }
 
 TEST_F(RadamsaTreeMutatorBaseTest, TwoChildren_OneGrandchild)
 {   
-    GTEST_SKIP();
-    std::string buffString = "43(12)(56(50))";
-
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-    char* modBuff;
-
-    const size_t buff_len = buffString.length();
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    for(size_t i{0}; i < buff_len; ++i) {
-        buff[i] = buffString[i];
-    }
+    const std::string treeStr = "GH(IJ(KL))(MN)";
 
     try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        modBuff = modEntry->getBufferPointer(testCaseKey);
-    } 
+        this->tr = RadamsaTreeMutatorBase::Tree(treeStr);
+    }
     catch (BaseException e)
     {
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-    std::string modString = std::string(modBuff);
-
-    // test buff len
-    EXPECT_TRUE(
-        modBuff_len == buff_len + 1 - 2 ||
-        modBuff_len == buff_len + 1 - 4
-    );
-    // test buff contents
-    EXPECT_TRUE(
-        modString == "43()(56(50))" ||  // left child delete
-        modString == "43(12)(50)" ||    // right child delete
-        modString == "43(12)(56)" ||    // grandchild delete
-        modString == "50(12)(56)"       // root delete
-    );
-}*/
+    EXPECT_EQ(treeStr, tr.toString(tr.root));
+}

@@ -119,10 +119,9 @@ TEST_F(RadamsaDeleteNodeMutatorTest, ZeroBytes)
     }
 }
 
-TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
+TEST_F(RadamsaDeleteNodeMutatorTest, JustRoot)
 {   
-    GTEST_SKIP();
-    std::string buffString = "4";
+    std::string buffString = "G";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -147,18 +146,14 @@ TEST_F(RadamsaDeleteNodeMutatorTest, OneNode)
     std::string modString = std::string(modBuff);
 
     // test buff len
-    EXPECT_TRUE(
-        modBuff_len == buff_len + 1 - 1 ||
-        modBuff_len == buff_len + 1 - 3
-    );
+    EXPECT_EQ(modBuff_len, buff_len + 1 - 1);
     // test buff contents
     EXPECT_EQ(modString[0], '\0');
 }
 
 TEST_F(RadamsaDeleteNodeMutatorTest, OneChild)
 {   
-    GTEST_SKIP();
-    std::string buffString = "43(12)";
+    std::string buffString = "GH(IJ)";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -189,15 +184,14 @@ TEST_F(RadamsaDeleteNodeMutatorTest, OneChild)
     );
     // test buff contents
     EXPECT_TRUE(
-        modString == "43" ||
-        modString == "12"
+        modString == "\0" ||
+        modString == "GH"
     );
 }
 
 TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren)
 {   
-    GTEST_SKIP();
-    std::string buffString = "43(12)(56)";
+    std::string buffString = "GH(IJ)(KL)";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -223,21 +217,20 @@ TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren)
 
     // test buff len
     EXPECT_TRUE(
-        modBuff_len == buff_len + 1 - 2 ||
-        modBuff_len == buff_len + 1 - 4
+        modBuff_len == buff_len + 1 - 4 ||
+        modBuff_len == 1
     );
     // test buff contents
     EXPECT_TRUE(
-        modString == "43()(56)" ||    // left child delete
-        modString == "43(12)" ||    // right child delete
-        modString == "56(12)"       // root delete
+        modString == "GH(KL)" ||
+        modString == "GH(IJ)" ||
+        modString == "\0"
     );
 }
 
 TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren_OneGrandchild)
 {   
-    GTEST_SKIP();
-    std::string buffString = "43(12)(56(50))";
+    std::string buffString = "GH(IJ(KL))(MN)";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -263,14 +256,15 @@ TEST_F(RadamsaDeleteNodeMutatorTest, TwoChildren_OneGrandchild)
 
     // test buff len
     EXPECT_TRUE(
-        modBuff_len == buff_len + 1 - 2 ||
-        modBuff_len == buff_len + 1 - 4
+        modBuff_len == buff_len + 1 - 4 ||
+        modBuff_len == buff_len + 1 - 8 ||
+        modBuff_len == 1
     );
     // test buff contents
     EXPECT_TRUE(
-        modString == "43()(56(50))" ||  // left child delete
-        modString == "43(12)(50)" ||    // right child delete
-        modString == "43(12)(56)" ||    // grandchild delete
-        modString == "50(12)(56)"       // root delete
+        modString == "GH(MN)" ||        // left child delete
+        modString == "GH(IJ(KL))" ||    // right child delete
+        modString == "GH(IJ)(MN)" ||    // grandchild delete
+        modString == "\0"               // root delete
     );
 }
