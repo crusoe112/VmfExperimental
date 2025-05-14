@@ -79,12 +79,11 @@ public:
                     if(!value.empty()) {
                         Node* n;
                         if(stk.empty()) {
-                            n = new Node(value, nullptr);
+                            n = insertNode(value);
                             this->root = n;
                         }
                         else {
-                            n = new Node(value, stk.top());
-                            stk.top()->children.push_back(n);
+                            n = insertNode(value, stk.top());
                         }
 
                         stk.push(n);
@@ -115,8 +114,7 @@ public:
                     }
 
                     if(!value.empty()) {
-                        Node* n = new Node(value, stk.top());
-                        stk.top()->children.push_back(n);
+                        insertNode(value, stk.top());
 
                         value.clear();
                     }
@@ -135,40 +133,17 @@ public:
 
             // case for TreeStr consisting of a single root node
             if(!value.empty() && this->root == nullptr) {
-                this->root = new Node(value);
+                this->root = insertNode(value);
             }
 
             return;
-        }
-
-        void deleteNode(Node* n) {
-            if(n == nullptr) {
-                return;
-            }
-
-            for(Node* child : n->children) {
-                deleteNode(child);
-            }
-
-            // erase self from parent's children
-            if(n->parent != nullptr) {
-                auto& parentChildren = n->parent->children;
-                auto it = std::find(parentChildren.begin(), parentChildren.end(), n);
-                if(it != parentChildren.end()) {
-                    parentChildren.erase(it);
-                }
-            }
-
-            delete n;
         }
     
     public:
         Node* root = nullptr;
 
         Tree() {};
-        Tree(string treeStr) {
-            buildTree(treeStr);
-        }
+        Tree(string treeStr) { buildTree(treeStr); }
         
         // deleting copy constructor and copy assignment to avoid shallow copies
         Tree(const Tree&) = delete;
@@ -224,35 +199,63 @@ public:
             return count;
         }
     
-        void deleteNodeByIndex(size_t indexToDelete) {
-            if(this->root == nullptr) {
-                throw RuntimeException{"The tree must have at least one node", RuntimeException::USAGE_ERROR};
+        Node* findNodeByIndex(Node* n, size_t& index) {
+            if(n == nullptr) return nullptr;
+            if(index == 0) return n;
+
+            --index;
+            for(Node* child : n->children) {
+                Node* result = findNodeByIndex(child, index);
+                if(result != nullptr) return result;
             }
 
-            // collect all the nodes
-            std::vector<Node*> nodes;
-            std::stack<Node*> stk;
-            
-            stk.push(this->root);
-            while(!stk.empty()) {
-                Node* curr = stk.top();
-                stk.pop();
-                nodes.push_back(curr);
+            return nullptr;
+        }
 
-                for(Node* child : curr->children) {
-                    stk.push(child);
+        Node* insertNode(string value, Node* parent = nullptr) {
+            Node* newNode = new Node(value, parent);
+            if(parent != nullptr) parent->children.push_back(newNode);
+            return newNode;
+        }
+
+        Node* duplicateNode(Node* original, Node* newParent) {
+            if (original == nullptr) {
+                throw RuntimeException{"Node to be duplicated must not be nullptr", RuntimeException::USAGE_ERROR};
+            }
+
+            if (original == this->root) {
+                throw RuntimeException{"Node to be duplicated must not be root", RuntimeException::USAGE_ERROR};
+            }
+
+            Node* duplicate = new Node(original->value, newParent);
+            newParent->children.push_back(duplicate);
+            for(Node* child : original->children) {
+                duplicate->children.push_back(duplicateNode(child, duplicate));
+            }
+
+            return duplicate;
+        }
+
+        void deleteNode(Node* n) {
+            if(n == nullptr) {
+                return;
+            }
+
+            for(Node* child : n->children) {
+                deleteNode(child);
+            }
+
+            // erase self from parent's children
+            if(n->parent != nullptr) {
+                auto& parentChildren = n->parent->children;
+                auto it = std::find(parentChildren.begin(), parentChildren.end(), n);
+                if(it != parentChildren.end()) {
+                    parentChildren.erase(it);
                 }
             }
 
-            if(indexToDelete < 0 || indexToDelete >= nodes.size()) {
-                throw RuntimeException{"The index to delete is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
-            }
-
-            if(indexToDelete == 0) {
-                this->root = nullptr;
-            }
-            Node* nodeToDelete = nodes[indexToDelete];
-            deleteNode(nodeToDelete);
+            if(n == this->root) this->root = nullptr;
+            delete n;
         }
     };
 };

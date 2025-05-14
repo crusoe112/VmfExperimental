@@ -114,9 +114,10 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
 
     const size_t lower{0u};
     const size_t upper{numNodes - 1};
-    const size_t nodeIndexToDelete{this->rand->randBetween(lower, upper)};
+    size_t nodeIndexToDelete{this->rand->randBetween(lower, upper)};    // not const, because findNodeByIndex will modify it
 
-    tr.deleteNodeByIndex(nodeIndexToDelete);
+    Node* nodeToDelete = tr.findNodeByIndex(tr.root, nodeIndexToDelete);
+    tr.deleteNode(nodeToDelete);
 
     string modTreeStr = tr.toString(tr.root);
 
