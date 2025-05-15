@@ -55,7 +55,22 @@ public:
         std::vector<Node*> children;
 
         Node(string v, Node* p = nullptr) : value(v), parent(p) {};
-        ~Node() = default;
+
+        // Disable copy constructor and copy assignment
+        Node(const Node&) = delete;
+        Node& operator=(const Node&) = delete;
+
+        ~Node() {
+            // DO NOT delete parent; parent owns this node, not the other way around
+
+            // copying to avoid iterator invalidation via deleting an element while still looping over the vector
+            std::vector<Node*> childrenCopy = this->children;
+            for(Node* child : childrenCopy) {
+                delete child;
+            }
+
+            return;
+        }
     };
 
     struct Tree
@@ -166,9 +181,7 @@ public:
             return *this;
         }
 
-        ~Tree() {
-            deleteNode(this->root);
-        };
+        ~Tree() { deleteNode(this->root); }
 
         string toString(Node* n) {
             if(n == nullptr) {
@@ -219,16 +232,18 @@ public:
         }
 
         Node* duplicateNode(Node* original, Node* newParent) {
-            if (original == nullptr) {
+            if(original == nullptr) {
                 throw RuntimeException{"Node to be duplicated must not be nullptr", RuntimeException::USAGE_ERROR};
             }
-
-            if (original == this->root) {
+            if(original == this->root) {
                 throw RuntimeException{"Node to be duplicated must not be root", RuntimeException::USAGE_ERROR};
             }
+            if(newParent == nullptr) {
+                throw RuntimeException{"Parent of the Node to be duplicated must not be nullptr", RuntimeException::USAGE_ERROR};
+            }
 
-            Node* duplicate = new Node(original->value, newParent);
-            newParent->children.push_back(duplicate);
+            Node* duplicate = insertNode(original->value, newParent);
+
             for(Node* child : original->children) {
                 duplicate->children.push_back(duplicateNode(child, duplicate));
             }
@@ -237,11 +252,11 @@ public:
         }
 
         void deleteNode(Node* n) {
-            if(n == nullptr) {
-                return;
-            }
+            if(n == nullptr) return;
 
-            for(Node* child : n->children) {
+            // copying to avoid iterator invalidation via deleting an element while still looping over the vector
+            std::vector<Node*> childrenCopy = n->children;
+            for(Node* child : childrenCopy) {
                 deleteNode(child);
             }
 
@@ -255,6 +270,7 @@ public:
             }
 
             if(n == this->root) this->root = nullptr;
+
             delete n;
         }
     };

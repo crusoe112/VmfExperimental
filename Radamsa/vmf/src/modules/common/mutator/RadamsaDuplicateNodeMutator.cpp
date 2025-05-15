@@ -91,5 +91,42 @@ void RadamsaDuplicateNodeMutator::registerStorageNeeds(StorageRegistry& registry
 
 void RadamsaDuplicateNodeMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // Duplicates existing node, including its children, and adds it to the same parent as the original
+
+    const size_t minimumSize{4u};   // minimal case consists of two single-character nodes
+    const size_t minimumSeedIndex{0u};
+    const size_t minimumNodes{2u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize)
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 4", RuntimeException::USAGE_ERROR};
+
+    if (minimumSeedIndex > originalSize - 1u)
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    if (originalBuffer == nullptr)
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    const std::string treeStr(originalBuffer, originalSize);
+    Tree tr(treeStr);
+
+    size_t numNodes = tr.countNodes(tr.root);
+    if (numNodes < minimumNodes)
+        throw RuntimeException{"The number of nodes must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+
+    const size_t lower{1u};
+    const size_t upper{numNodes - 2};
+    size_t nodeIndexToDuplicate{this->rand->randBetween(lower, upper)}; // not const, because findNodeByIndex will modify it
+    Node* nodeToDuplicate = tr.findNodeByIndex(tr.root, nodeIndexToDuplicate); 
+
+    tr.duplicateNode(nodeToDuplicate, nodeToDuplicate->parent);
+
+    string modTreeStr = tr.toString(tr.root);
+    const size_t newBufferSize{modTreeStr.length() + 1}; // +1 to implicitly append a null terminator
+
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
+    memset(newBuffer, 0u, newBufferSize);
+
+    std::strcpy(newBuffer, modTreeStr.c_str());
 }
