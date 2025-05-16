@@ -29,7 +29,7 @@
  /**
   *
   */
-#include "RadamsaDuplicateNodeMutator.hpp"
+#include "RadamsaReplaceNodeMutator.hpp"
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
@@ -37,16 +37,16 @@
 using namespace vmf;
 
 #include "ModuleFactory.hpp"
-REGISTER_MODULE(RadamsaDuplicateNodeMutator);
+REGISTER_MODULE(RadamsaReplaceNodeMutator);
 
 /**
  * @brief Builder method to support the ModuleFactory
  * Constructs an instance of this class
  * @return Module* - Pointer to the newly created instance
  */
-Module* RadamsaDuplicateNodeMutator::build(std::string name)
+Module* RadamsaReplaceNodeMutator::build(std::string name)
 {
-    return new RadamsaDuplicateNodeMutator(name);
+    return new RadamsaReplaceNodeMutator(name);
 }
 
 /**
@@ -54,26 +54,26 @@ Module* RadamsaDuplicateNodeMutator::build(std::string name)
  *
  * @param config - Configuration object
  */
-void RadamsaDuplicateNodeMutator::init(ConfigInterface& config)
+void RadamsaReplaceNodeMutator::init(ConfigInterface& config)
 {
 
 }
 
 /**
- * @brief Construct a new RadamsaDuplicateNodeMutator::RadamsaDuplicateNodeMutator object
+ * @brief Construct a new RadamsaReplaceNodeMutator::RadamsaReplaceNodeMutator object
  *
  * @param name The of the name module
  */
-RadamsaDuplicateNodeMutator::RadamsaDuplicateNodeMutator(std::string name) : MutatorModule(name)
+RadamsaReplaceNodeMutator::RadamsaReplaceNodeMutator(std::string name) : MutatorModule(name)
 {
     // rand->randInit();
 }
 
 /**
- * @brief Destroy the RadamsaDuplicateNodeMutator::RadamsaDuplicateNodeMutator object
+ * @brief Destroy the RadamsaReplaceNodeMutator::RadamsaReplaceNodeMutator object
  *
  */
-RadamsaDuplicateNodeMutator::~RadamsaDuplicateNodeMutator()
+RadamsaReplaceNodeMutator::~RadamsaReplaceNodeMutator()
 {
 
 }
@@ -83,15 +83,15 @@ RadamsaDuplicateNodeMutator::~RadamsaDuplicateNodeMutator()
  *
  * @param registry - StorageRegistry object
  */
-void RadamsaDuplicateNodeMutator::registerStorageNeeds(StorageRegistry& registry)
+void RadamsaReplaceNodeMutator::registerStorageNeeds(StorageRegistry& registry)
 {
     // This module does not register for a test case buffer key, because mutators are told which buffer to write in storage
     // by the input generator that calls them
 }
 
-void RadamsaDuplicateNodeMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
+void RadamsaReplaceNodeMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // Duplicates existing node, including its children, and adds it to the same parent as the original
+    // Replaces an random node with another random node
 
     const size_t minimumSize{4u};   // minimal case consists of two single-character nodes
     const size_t minimumSeedIndex{0u};
@@ -99,28 +99,32 @@ void RadamsaDuplicateNodeMutator::mutateTestCase(StorageModule& storage, Storage
     const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
     char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
 
-    if (originalSize < minimumSize)
+    if (originalSize < minimumSize) {
         throw RuntimeException{"The buffer's minimum size must be greater than or equal to 4", RuntimeException::USAGE_ERROR};
-
-    if (minimumSeedIndex > originalSize - 1u)
+    }
+    if (minimumSeedIndex > originalSize - 1u) {
         throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
-
-    if (originalBuffer == nullptr)
+    }
+    if (originalBuffer == nullptr) {
         throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+    }
 
     const std::string treeStr(originalBuffer, originalSize);
     Tree tr(treeStr);
 
     size_t numNodes = tr.countNodes(tr.root);
-    if (numNodes < minimumNodes)
+    if (numNodes < minimumNodes) {
         throw RuntimeException{"The number of nodes must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+    }
 
-    const size_t lower{1u};
-    const size_t upper{numNodes - 2};
-    size_t nodeIndexToDuplicate{this->rand->randBetween(lower, upper)}; // not const, because findNodeByIndex will modify it
-    Node* nodeToDuplicate = tr.findNodeByIndex(tr.root, nodeIndexToDuplicate); 
+    const size_t lower{0u};
+    const size_t upper{numNodes - 1};
+    size_t nodeIndexToReplace{this->rand->randBetween(lower, upper)};   // not const, because findNodeByIndex will modify it
+    size_t nodeIndexToCopy{this->rand->randBetween(lower, upper)};      // ^
+    Node* toReplace = tr.findNodeByIndex(tr.root, nodeIndexToReplace); 
+    Node* toCopy = tr.findNodeByIndex(tr.root, nodeIndexToCopy);
 
-    tr.duplicateNode(nodeToDuplicate, nodeToDuplicate->parent);
+    tr.replaceNode(toReplace, toCopy);
 
     const string modTreeStr = tr.toString(tr.root);
     const size_t newBufferSize{modTreeStr.length() + 1}; // +1 to implicitly append a null terminator

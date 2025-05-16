@@ -251,6 +251,19 @@ public:
             return duplicate;
         }
 
+        void replaceNode(Node* toReplace, Node* toCopy) {
+            if(toReplace == nullptr) {
+                throw RuntimeException{"Node to be replaced must not be nullptr", RuntimeException::USAGE_ERROR};
+            }
+            if(toCopy == nullptr) {
+                throw RuntimeException{"Node to be copied must not be nullptr", RuntimeException::USAGE_ERROR};
+            }
+
+            toReplace->value = toCopy->value;
+
+            return;
+        }
+
         void deleteNode(Node* n) {
             if(n == nullptr) return;
 

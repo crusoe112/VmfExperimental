@@ -55,6 +55,7 @@ SET(TEST_SRCS
   ../../Radamsa/test/RadamsaTreeMutatorBaseTest.cpp
   ../../Radamsa/test/RadamsaDeleteNodeMutatorTest.cpp
   ../../Radamsa/test/RadamsaDuplicateNodeMutatorTest.cpp
+  ../../Radamsa/test/RadamsaReplaceNodeMutatorTest.cpp
 )
 
 add_executable(VmfTest ${TEST_SRCS})
