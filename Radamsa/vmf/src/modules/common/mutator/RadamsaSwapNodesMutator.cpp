@@ -29,7 +29,7 @@
  /**
   *
   */
-#include "RadamsaReplaceNodeMutator.hpp"
+#include "RadamsaSwapNodesMutator.hpp"
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
@@ -37,16 +37,16 @@
 using namespace vmf;
 
 #include "ModuleFactory.hpp"
-REGISTER_MODULE(RadamsaReplaceNodeMutator);
+REGISTER_MODULE(RadamsaSwapNodesMutator);
 
 /**
  * @brief Builder method to support the ModuleFactory
  * Constructs an instance of this class
  * @return Module* - Pointer to the newly created instance
  */
-Module* RadamsaReplaceNodeMutator::build(std::string name)
+Module* RadamsaSwapNodesMutator::build(std::string name)
 {
-    return new RadamsaReplaceNodeMutator(name);
+    return new RadamsaSwapNodesMutator(name);
 }
 
 /**
@@ -54,26 +54,26 @@ Module* RadamsaReplaceNodeMutator::build(std::string name)
  *
  * @param config - Configuration object
  */
-void RadamsaReplaceNodeMutator::init(ConfigInterface& config)
+void RadamsaSwapNodesMutator::init(ConfigInterface& config)
 {
 
 }
 
 /**
- * @brief Construct a new RadamsaReplaceNodeMutator::RadamsaReplaceNodeMutator object
+ * @brief Construct a new RadamsaSwapNodesMutator::RadamsaSwapNodesMutator object
  *
  * @param name The of the name module
  */
-RadamsaReplaceNodeMutator::RadamsaReplaceNodeMutator(std::string name) : MutatorModule(name)
+RadamsaSwapNodesMutator::RadamsaSwapNodesMutator(std::string name) : MutatorModule(name)
 {
     // rand->randInit();
 }
 
 /**
- * @brief Destroy the RadamsaReplaceNodeMutator::RadamsaReplaceNodeMutator object
+ * @brief Destroy the RadamsaSwapNodesMutator::RadamsaSwapNodesMutator object
  *
  */
-RadamsaReplaceNodeMutator::~RadamsaReplaceNodeMutator()
+RadamsaSwapNodesMutator::~RadamsaSwapNodesMutator()
 {
 
 }
@@ -83,15 +83,15 @@ RadamsaReplaceNodeMutator::~RadamsaReplaceNodeMutator()
  *
  * @param registry - StorageRegistry object
  */
-void RadamsaReplaceNodeMutator::registerStorageNeeds(StorageRegistry& registry)
+void RadamsaSwapNodesMutator::registerStorageNeeds(StorageRegistry& registry)
 {
     // This module does not register for a test case buffer key, because mutators are told which buffer to write in storage
     // by the input generator that calls them
 }
 
-void RadamsaReplaceNodeMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
+void RadamsaSwapNodesMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // Replaces an random node with another random node
+    // Swaps two random nodes pairwise
 
     const size_t minimumSize{4u};   // minimal case consists of two single-character nodes
     const size_t minimumSeedIndex{0u};
@@ -119,15 +119,15 @@ void RadamsaReplaceNodeMutator::mutateTestCase(StorageModule& storage, StorageEn
 
     const size_t lower{0u};
     const size_t upper{numNodes - 1};
-    size_t nodeIndexToReplace{this->rand->randBetween(lower, upper)};   // not const, because findNodeByIndex will modify it
-    size_t nodeIndexToCopy{this->rand->randBetween(lower, upper)};      // ^
-
-    if(nodeIndexToReplace != nodeIndexToCopy) {
-        Node* toReplace = tr.findNodeByIndex(tr.root, nodeIndexToReplace); 
-        Node* toCopy = tr.findNodeByIndex(tr.root, nodeIndexToCopy);
-        tr.replaceNode(toReplace, toCopy);
+    size_t nodeIndex1{this->rand->randBetween(lower, upper)};   // not const, because findNodeByIndex will modify it
+    size_t nodeIndex2{this->rand->randBetween(lower, upper)};   // ^
+    
+    if(nodeIndex1 != nodeIndex2) {
+        Node* node1 = tr.findNodeByIndex(tr.root, nodeIndex1); 
+        Node* node2 = tr.findNodeByIndex(tr.root, nodeIndex2);
+        tr.swapNodes(node1, node2);
     }
-
+    
     const string modTreeStr = tr.toString(tr.root);
     const size_t newBufferSize{modTreeStr.length() + 1}; // +1 to implicitly append a null terminator
 

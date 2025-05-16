@@ -264,6 +264,18 @@ public:
             return;
         }
 
+        void swapNodes(Node* node1, Node* node2) {
+            if(node1 == nullptr || node2 == nullptr) {
+                throw RuntimeException{"Both nodes to be swapped must not be nullptr", RuntimeException::USAGE_ERROR};
+            }
+
+            const string temp = node1->value;
+            node1->value = node2->value;
+            node2->value = temp;
+
+            return;
+        }
+
         void deleteNode(Node* n) {
             if(n == nullptr) return;
 

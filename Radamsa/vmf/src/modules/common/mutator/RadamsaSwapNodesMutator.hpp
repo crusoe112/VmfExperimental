@@ -31,7 +31,7 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
-#include "RadamsaByteMutatorBase.hpp"
+#include "RadamsaTreeMutatorBase.hpp"
 #include "VmfRand.hpp"
 
 namespace vmf
@@ -39,15 +39,15 @@ namespace vmf
 /**
  *
  */
-class RadamsaSwapNodesPairwiseMutator: public MutatorModule, public RadamsaByteMutatorBase
+class RadamsaSwapNodesMutator: public MutatorModule, public RadamsaTreeMutatorBase
 {
     public:
 
         static Module* build(std::string name);
         virtual void init(ConfigInterface& config);
 
-        RadamsaSwapNodesPairwiseMutator(std::string name);
-        virtual ~RadamsaSwapNodesPairwiseMutator();
+        RadamsaSwapNodesMutator(std::string name);
+        virtual ~RadamsaSwapNodesMutator();
         virtual void registerStorageNeeds(StorageRegistry& registry);
         virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
 
