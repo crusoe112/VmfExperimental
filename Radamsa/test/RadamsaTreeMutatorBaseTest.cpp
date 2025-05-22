@@ -42,7 +42,6 @@ using vmf::StorageEntry;
 using vmf::RadamsaTreeMutatorBase;
 using vmf::BaseException;
 using vmf::RuntimeException;
-// using RadamsaTreeMutatorBase::Tree;
 
 class RadamsaTreeMutatorBaseTest : public ::testing::Test {
   protected:

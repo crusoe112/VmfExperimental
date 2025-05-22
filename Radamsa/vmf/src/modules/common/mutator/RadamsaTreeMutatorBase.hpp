@@ -71,6 +71,19 @@ public:
 
             return;
         }
+
+        Node* deepCopy(Node* newParent = nullptr) const {
+            // Create copy of self and children, but as separate objects, and attach to newParent
+            
+            Node* selfCopy = new Node(this->value, newParent);
+            for(Node* child : this->children) {
+                selfCopy->children.push_back(child->deepCopy(selfCopy));
+            }
+
+            // if (newParent) newParent->children.push_back(selfCopy);
+
+            return selfCopy;
+        }
     };
 
     struct Tree
@@ -184,9 +197,9 @@ public:
         ~Tree() { deleteNode(this->root); }
 
         string toString(Node* n) {
-            if(n == nullptr) {
-                return "";
-            }
+            // create a parenthesis-delimited string from subtree n
+
+            if(!n) return "";
 
             string treeStr(n->value);
 
@@ -200,19 +213,17 @@ public:
         }
 
         size_t countNodes(Node* n) {
-            if(n == nullptr) {
-                return 0u;
-            }
+            if(!n) return 0u;
 
             size_t count = 1; // count n itself
-            for(Node* child : n->children) {
-                count += countNodes(child);
-            }
+            for(Node* child : n->children) count += countNodes(child);
 
             return count;
         }
     
         Node* findNodeByIndex(Node* n, size_t& index) {
+            // traverse tree in-order, returning index-th node
+
             if(n == nullptr) return nullptr;
             if(index == 0) return n;
 
@@ -226,19 +237,23 @@ public:
         }
 
         Node* insertNode(string value, Node* parent = nullptr) {
+            // Insert a new node as a child of "parent"
+
             Node* newNode = new Node(value, parent);
-            if(parent != nullptr) parent->children.push_back(newNode);
+            if(parent) parent->children.push_back(newNode);
             return newNode;
         }
 
         Node* duplicateNode(Node* original, Node* newParent) {
-            if(original == nullptr) {
+            // Duplicates a node and all of its children
+
+            if(!original) {
                 throw RuntimeException{"Node to be duplicated must not be nullptr", RuntimeException::USAGE_ERROR};
             }
             if(original == this->root) {
                 throw RuntimeException{"Node to be duplicated must not be root", RuntimeException::USAGE_ERROR};
             }
-            if(newParent == nullptr) {
+            if(!newParent) {
                 throw RuntimeException{"Parent of the Node to be duplicated must not be nullptr", RuntimeException::USAGE_ERROR};
             }
 
@@ -252,11 +267,10 @@ public:
         }
 
         void replaceNode(Node* toReplace, Node* toCopy) {
-            if(toReplace == nullptr) {
-                throw RuntimeException{"Node to be replaced must not be nullptr", RuntimeException::USAGE_ERROR};
-            }
-            if(toCopy == nullptr) {
-                throw RuntimeException{"Node to be copied must not be nullptr", RuntimeException::USAGE_ERROR};
+            // Replace one node's value with another's
+
+            if(!toReplace || !toCopy) {
+                throw RuntimeException{"Both nodes must not be nullptr", RuntimeException::USAGE_ERROR};
             }
 
             toReplace->value = toCopy->value;
@@ -265,7 +279,9 @@ public:
         }
 
         void swapNodes(Node* node1, Node* node2) {
-            if(node1 == nullptr || node2 == nullptr) {
+            // Swap the values of two nodes
+
+            if(!node1 || !node2) {
                 throw RuntimeException{"Both nodes to be swapped must not be nullptr", RuntimeException::USAGE_ERROR};
             }
 
@@ -277,6 +293,8 @@ public:
         }
 
         void deleteNode(Node* n) {
+            // deallocate n and its children, and remove n from n->parent->children
+
             if(n == nullptr) return;
 
             // copying to avoid iterator invalidation via deleting an element while still looping over the vector
@@ -286,7 +304,7 @@ public:
             }
 
             // erase self from parent's children
-            if(n->parent != nullptr) {
+            if(n->parent) {
                 auto& parentChildren = n->parent->children;
                 auto it = std::find(parentChildren.begin(), parentChildren.end(), n);
                 if(it != parentChildren.end()) {
@@ -297,6 +315,29 @@ public:
             if(n == this->root) this->root = nullptr;
 
             delete n;
+        }
+    
+        void repeatPath(Node* parent, size_t childIndex, size_t numReps) {
+            // Replace a child of "parent" with recursive copies of "parent"
+
+            if (numReps <= 0) return;
+
+            if (parent == nullptr) throw RuntimeException{"Node to be repeated must not be nullptr", RuntimeException::USAGE_ERROR};
+            if (childIndex >= parent->children.size()) throw RuntimeException{"childIndex is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+            // custom delete here because we want to preserve the child's entry in parent->children
+            Node* parentCopy = parent->deepCopy(parent);
+            Node* toReplace = parent->children[childIndex];
+            std::vector<Node*> childrenCopy = toReplace->children;
+            for(Node* child : childrenCopy) {
+                this->deleteNode(child);
+            }
+            delete toReplace;
+
+            parent->children[childIndex] = parentCopy;
+
+            this->repeatPath(parent->children[childIndex], childIndex, numReps - 1);
+            return;
         }
     };
 };

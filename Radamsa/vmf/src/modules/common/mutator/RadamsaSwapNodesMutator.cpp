@@ -135,4 +135,5 @@ void RadamsaSwapNodesMutator::mutateTestCase(StorageModule& storage, StorageEntr
     memset(newBuffer, 0u, newBufferSize);
 
     std::strcpy(newBuffer, modTreeStr.c_str());
+    return;
 }
