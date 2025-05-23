@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ModuleTestHelper.hpp"
 #include "SimpleStorage.hpp"
-#include "RadamsaDeleteLineMutator.hpp"
+#include "RadamsaWidenCodePointMutator.hpp"
 #include "RuntimeException.hpp"
 
 using vmf::StorageModule;
@@ -39,23 +39,23 @@ using vmf::ModuleTestHelper;
 using vmf::TestConfigInterface;
 using vmf::SimpleStorage;
 using vmf::StorageEntry;
-using vmf::RadamsaDeleteLineMutator;
+using vmf::RadamsaWidenCodePointMutator;
 using vmf::BaseException;
 using vmf::RuntimeException;
 
-class RadamsaDeleteLineMutatorTest : public ::testing::Test {
+class RadamsaWidenCodePointMutatorTest : public ::testing::Test {
   protected:
-    RadamsaDeleteLineMutatorTest() 
+    RadamsaWidenCodePointMutatorTest() 
     {
       storage = new SimpleStorage("storage");
       registry = new StorageRegistry("TEST_INT", StorageRegistry::INT, StorageRegistry::ASCENDING);
       metadata = new StorageRegistry();
       testHelper = new ModuleTestHelper();
-      theMutator = new RadamsaDeleteLineMutator("RadamsaDeleteLineMutator");
+      theMutator = new RadamsaWidenCodePointMutator("RadamsaWidenCodePointMutator");
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaDeleteLineMutatorTest() override {}
+    ~RadamsaWidenCodePointMutatorTest() override {}
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -77,7 +77,7 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
       theMutator->init(*config);
       theMutator->registerStorageNeeds(*registry);
       theMutator->registerMetadataNeeds(*metadata);
-  }
+    }
 
     void TearDown() override {
       delete registry;
@@ -85,7 +85,7 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
       delete storage;
     }
 
-    RadamsaDeleteLineMutator* theMutator;
+    RadamsaWidenCodePointMutator* theMutator;
     StorageModule* storage;
     StorageRegistry* registry;
     StorageRegistry* metadata;
@@ -94,25 +94,26 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
-/*TEST_F(RadamsaDeleteLineMutatorTest, BufferNotNull)
+/*TEST_F(RadamsaWidenCodePointMutatorTest, BufferNotNull)
 {
     // no way to test this without mocks
 }*/
 
-TEST_F(RadamsaDeleteLineMutatorTest, BufferSizeGEOne)
-{    
+TEST_F(RadamsaWidenCodePointMutatorTest, NotAscii)
+{   
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
 
-    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
-    /* By not allocating the buffer, we're forcing 
-    StorageEntry::getBufferSize() to return '-1'.
-    */
+    const size_t buff_len = 1;
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+
+    buff[0] = 127;
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
         ADD_FAILURE() << "No exception thrown";
-    } 
+    }
     catch (RuntimeException e)
     {
         EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
@@ -123,18 +124,19 @@ TEST_F(RadamsaDeleteLineMutatorTest, BufferSizeGEOne)
     }
 }
 
-TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
-{    
+TEST_F(RadamsaWidenCodePointMutatorTest, OneByte)
+{   
+    std::string buffString = "g";   // 0b01100111
+
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
-
-    size_t buff_len = 2;
-    size_t line_len = 2;
     char* modBuff;
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    buff[0] = '4';
-    buff[1] = '\n';
 
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
         modBuff = modEntry->getBufferPointer(testCaseKey);
@@ -144,36 +146,72 @@ TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    std::string modString = std::string(modBuff);
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
 
-    // EXPECT_FALSE(std::equal(buff,       buff + buff_len, 
-    //                         modBuff,    modBuff + modBuff_len - 1)
-    //             ) << "Modified buffer must not be equal to original buffer";
-
-    EXPECT_EQ(buff_len / line_len - 1, 
-              std::count(modBuff, modBuff + modBuff_len, '\n')
-              ) << "Number of lines in modified buffer must be one less than those in the original buffer";
-
-    EXPECT_EQ(buff_len - line_len + 1, modBuff_len
-             ) << "Modified buffer length must be equal to the original buffer less one line plus one";
-    
-    EXPECT_EQ(modString, "\0");
+    ASSERT_FALSE(
+        std::equal(
+            buff,
+            buff + buff_len, 
+            modBuff
+        )
+    );
+    EXPECT_EQ(modBuff_len, buff_len + 2);
+    EXPECT_EQ(modBuff[0], '\xC0');  // 0b11000000
+    EXPECT_EQ(modBuff[1], '\xE7');  // 0b11100111
 }
 
-TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
-{    
+TEST_F(RadamsaWidenCodePointMutatorTest, TwoBytes)
+{   
+    std::string buffString = "gh";   // 0b01100111, 0b01101000
+
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
-
-    size_t buff_len = 4;
-    size_t line_len = 2;
     char* modBuff;
+
+    const size_t buff_len = buffString.length();
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    buff[0] = '4';
-    buff[1] = '\n';
-    buff[2] = '5';
-    buff[3] = '\n';
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+
+    ASSERT_FALSE(
+        std::equal(
+            buff,
+            buff + buff_len, 
+            modBuff
+        )
+    );
+    EXPECT_EQ(modBuff_len, buff_len + 2);
+
+    if (modBuff[0] == '\xC0') EXPECT_EQ(modBuff[1], '\xE7');
+
+    else if (modBuff[1] == '\xC0') EXPECT_EQ(modBuff[2], '\xE8');
+
+    else FAIL() << "modBuff[0] and modBuff[1] do not equal \'\\xC0\'";
+}
+
+TEST_F(RadamsaWidenCodePointMutatorTest, MixedValidInvalid)
+{   
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = 2;
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+
+    buff[0] = 127;
+    buff[1] = 'g';
+    buff[2] = 31;
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
@@ -184,56 +222,16 @@ TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
         FAIL() << "Exception thrown: " << e.getReason();
     }
 
-    // test buff ne
-    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
-    // test number of lines in buff
-    EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
-    // test buff len
-    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
-    // test buff contents
-    std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n\0" | 
-                modString == "5\n\0");
-}
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
 
-TEST_F(RadamsaDeleteLineMutatorTest, ThreeLines)
-{    
-    StorageEntry* baseEntry = storage->createNewEntry();
-    StorageEntry* modEntry = storage->createNewEntry();
-
-    size_t buff_len = 6;
-    size_t line_len = 2;
-    char* modBuff;
-    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
-    buff[0] = '4';
-    buff[1] = '\n';
-    buff[2] = '5';
-    buff[3] = '\n';
-    buff[4] = '6';
-    buff[5] = '\n';
-
-    try{
-        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        modBuff = modEntry->getBufferPointer(testCaseKey);
-    } 
-    catch (BaseException e)
-    {
-        FAIL() << "Exception thrown: " << e.getReason();
-    }
-
-    // test buff ne
-    ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
-                            modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
-    // test number of lines in buff
-    EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
-    // test buff len
-    EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
-    // test buff contents
-    std::string modString = std::string(modBuff);
-    EXPECT_TRUE(modString == "4\n5\n\0" | 
-                modString == "5\n6\n\0" | 
-                modString == "4\n6\n\0");
+    ASSERT_FALSE(
+        std::equal(
+            buff,
+            buff + buff_len, 
+            modBuff
+        )
+    );
+    EXPECT_EQ(modBuff_len, buff_len + 2);
+    EXPECT_EQ(modBuff[1], '\xC0');  // 0b11000000
+    EXPECT_EQ(modBuff[2], '\xE7');  // 0b11100111
 }

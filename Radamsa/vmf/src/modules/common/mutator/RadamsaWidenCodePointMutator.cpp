@@ -91,5 +91,48 @@ void RadamsaWidenCodePointMutator::registerStorageNeeds(StorageRegistry& registr
 
 void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // Replace a random 6-bit ASCII character with an equivalent 2-byte UTF-8-like sequence
+
+    const size_t minimumSize{1u};
+    const size_t minimumSeedIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize) {
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+    }
+    if (minimumSeedIndex > originalSize - 1u) {
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+    }
+    if (originalBuffer == nullptr) {
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+    }
+
+    std::vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
+
+    const size_t lower{0};
+    const size_t upper{data.size() - 1};
+    size_t index;
+    uint8_t codePoint;
+    size_t attempts = 0;
+    const size_t max_attempts = data.size();
+    do {
+        attempts++;
+        if (attempts > max_attempts) {
+            throw RuntimeException{"Unable to locate a valid ASCII byte", RuntimeException::USAGE_ERROR};
+        }
+
+        index = this->rand->randBetween(lower, upper);
+        codePoint = data[index];
+    } while (codePoint < 32 || codePoint > 126); // ensure codePoint is printable ascii
+
+    data[index] = 0b11000000;   // set 2-byte utf prefix (110xxxxx)
+    data.insert(data.begin() + index + 1, codePoint | 0b10000000); // set continuation byte prefix (10xxxxxx)
+
+    const size_t newBufferSize{data.size() + 1}; // +1 to implicitly append a null terminator
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
+    memset(newBuffer, 0u, newBufferSize);
+    memcpy(newBuffer, data.data(), data.size());
+
+    return;
 }
