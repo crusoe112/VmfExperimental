@@ -53,5 +53,6 @@ class RadamsaInsertUnicodeMutator: public MutatorModule, public RadamsaByteMutat
 
     private:
         VmfRand* rand = VmfRand::getInstance();
+        std::vector<std::vector<uint8_t>> funnyUnicode;
 };
 }

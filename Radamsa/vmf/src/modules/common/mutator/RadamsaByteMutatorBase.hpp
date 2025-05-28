@@ -59,5 +59,28 @@ public:
 
         return rand->randBetween(0u, randomUpperLimit) + 1u; // We add one to the return value in order to account for the case where the random upper value is zero.
     }
+
+    std::vector<uint8_t> encode_utf8(char32_t cp) {
+        // encodes 21-bit character code points into UTF-8 values of 1 to 4 bytes
+
+        std::vector<uint8_t> result;
+        if (cp <= 0x7F) {           // 1B case
+            result.push_back(cp);       
+        } 
+        else if (cp <= 0x7FF) {     // 2B case
+            result.push_back(0xC0 | (cp >> 6));     // 110xxxxx, top 5b
+            result.push_back(0x80 | (cp & 0x3F));   // 10xxxxxx, bottom 6b
+        } else if (cp <= 0xFFFF) {  // 3B case
+            result.push_back(0xE0 | (cp >> 12));            // 1110xxxx, top 4b
+            result.push_back(0x80 | ((cp >> 6) & 0x3F));    // 10xxxxxx, next 6b
+            result.push_back(0x80 | (cp & 0x3F));
+        } else {                    // 4B case
+            result.push_back(0xF0 | (cp >> 18));            // 11110xxx, top 3b
+            result.push_back(0x80 | ((cp >> 12) & 0x3F));   // 10xxxxxx, next 6b
+            result.push_back(0x80 | ((cp >> 6) & 0x3F));
+            result.push_back(0x80 | (cp & 0x3F));
+        }
+        return result;
+    }
 };
 }

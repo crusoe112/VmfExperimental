@@ -55,7 +55,7 @@ add_library(Radamsa SHARED
   common/mutator/RadamsaRepeatPathMutator.cpp               # -tr
   common/mutator/RadamsaWidenCodePointMutator.cpp           # -uw
   common/mutator/RadamsaInsertUnicodeMutator.cpp            # -ui
-  common/mutator/RadamsaInsertUnicodeMutator.cpp            # -num
+  common/mutator/RadamsaModifyTextNumberMutator.cpp         # -num
   common/mutator/RadamsaXmlMutator.cpp                      # -xp
   common/mutator/RadamsaJumpSimilarMutator.cpp              # -ft
   common/mutator/RadamsaCloneSimilarMutator.cpp             # -fn
