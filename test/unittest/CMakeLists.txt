@@ -60,6 +60,7 @@ SET(TEST_SRCS
   ../../Radamsa/test/RadamsaRepeatPathMutatorTest.cpp
   ../../Radamsa/test/RadamsaWidenCodePointMutatorTest.cpp
   ../../Radamsa/test/RadamsaInsertUnicodeMutatorTest.cpp
+  ../../Radamsa/test/RadamsaModifyTextNumberMutatorTest.cpp
 )
 
 add_executable(VmfTest ${TEST_SRCS})

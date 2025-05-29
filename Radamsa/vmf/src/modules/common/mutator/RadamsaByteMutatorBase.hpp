@@ -32,6 +32,9 @@
 
 #include "RadamsaMutatorBase.hpp"
 
+using std::vector;
+using std::isdigit;
+
 namespace vmf
 {
 /**
@@ -40,6 +43,12 @@ namespace vmf
 class RadamsaByteMutatorBase: public RadamsaMutatorBase
 {
 public:
+    struct NumInfo {
+        unsigned int value = 0;
+        size_t offset = 0;
+        size_t length = 0;
+    };
+
     static size_t GetRandomRepetitionLength(VmfRand* rand) noexcept
     {
         constexpr size_t MINIMUM_UPPER_LIMIT{0x2u};
@@ -60,10 +69,10 @@ public:
         return rand->randBetween(0u, randomUpperLimit) + 1u; // We add one to the return value in order to account for the case where the random upper value is zero.
     }
 
-    std::vector<uint8_t> encode_utf8(char32_t cp) {
+    vector<uint8_t> encode_utf8(char32_t cp) {
         // encodes 21-bit character code points into UTF-8 values of 1 to 4 bytes
 
-        std::vector<uint8_t> result;
+        vector<uint8_t> result;
         if (cp <= 0x7F) {           // 1B case
             result.push_back(cp);       
         } 
@@ -80,6 +89,51 @@ public:
             result.push_back(0x80 | ((cp >> 6) & 0x3F));
             result.push_back(0x80 | (cp & 0x3F));
         }
+        return result;
+    }
+
+    vector<NumInfo> extract_textualNumbers(const vector<uint8_t>& data) {
+        // Converts and extracts ASCII numbers given a vector of bytes
+
+        vector<NumInfo> result;
+        size_t i = 0;
+        while (i < data.size()) {
+            if (isdigit(data[i])) {
+                size_t start = i;
+                while (i < data.size() && isdigit(data[i])) ++i;   // find length of number
+
+                std::string numStr(data.begin() + start, data.begin() + i);
+                try {
+                    unsigned long long val = std::stoull(numStr);
+                    if (val <= std::numeric_limits<unsigned int>::max()) {
+                        result.push_back({static_cast<unsigned int>(val), start, i - start});
+                    }
+                    // else: too large for ui, skip
+                } 
+                catch(const std::invalid_argument& e) {
+                    // invalid number, skip
+                }   
+                catch(const std::out_of_range& e) {
+                    // too large for ull, skip
+                }
+            }
+            else ++i;
+        }
+
+        return result;
+    }
+
+    vector<unsigned int> generate_interestingNumbers() {
+        vector<unsigned int> result;
+        vector<unsigned int> shifts = {1, 7, 8, 15, 16, 31};    // truncating from original rust, as unsigned ints are only 32b
+
+        for (unsigned int s : shifts) {
+            unsigned int val = 1ULL << s;
+            result.push_back(val);
+            result.push_back(val - 1);
+            result.push_back(val + 1);
+        }
+
         return result;
     }
 };
