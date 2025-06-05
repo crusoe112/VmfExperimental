@@ -69,24 +69,24 @@ RadamsaInsertUnicodeMutator::RadamsaInsertUnicodeMutator(std::string name) : Mut
     // rand->randInit();
 
     // these values copied from github.com/microsoft/rusty-radamsa/blob/main/src/mutations.rs#L677
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u202E'));     // Right to Left Override
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u202D'));     // Left to Right Override
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u180E'));     // Mongolian Vowel Separator
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u2060'));     // Word Joiner
-    this->funnyUnicode.push_back(this->encode_utf8(U'\uFEFE'));     // reserved
-    this->funnyUnicode.push_back(this->encode_utf8(U'\uFFFF'));     // not a character
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u0FED'));     // unassigned
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u202E'));     // Right to Left Override
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u202D'));     // Left to Right Override
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u180E'));     // Mongolian Vowel Separator
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u2060'));     // Word Joiner
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\uFEFE'));     // reserved
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\uFFFF'));     // not a character
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u0FED'));     // unassigned
     this->funnyUnicode.push_back({0xed, 0xba, 0xad});               // U+DEAD illegal low surrogate
     this->funnyUnicode.push_back({0xed, 0xaa, 0xad});               // U+DAAD illegal high surrogate
-    this->funnyUnicode.push_back(this->encode_utf8(U'\uF8FF'));     // private use char (Apple)
-    this->funnyUnicode.push_back(this->encode_utf8(U'\uFF0F'));     // full width solidus
-    this->funnyUnicode.push_back(this->encode_utf8(U'\U0001D7D6')); // MATHEMATICAL BOLD DIGIT EIGHT
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u00DF'));     // IDNA deviant
-    this->funnyUnicode.push_back(this->encode_utf8(U'\uFDFD'));     // expands by 11x (UTF-8) and 18x (UTF-16) NFKC
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u0390'));     // expands by 3x (UTF-8) NFD
-    this->funnyUnicode.push_back(this->encode_utf8(U'\u1F82'));     // expands by 4x (UTF-16) NFD
-    this->funnyUnicode.push_back(this->encode_utf8(U'\uFB2C'));     // expands by 3x (UTF-16) under NFC
-    this->funnyUnicode.push_back(this->encode_utf8(U'\U0001D160')); // expands by 3x (UTF-8) under NFC
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\uF8FF'));     // private use char (Apple)
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\uFF0F'));     // full width solidus
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\U0001D7D6')); // MATHEMATICAL BOLD DIGIT EIGHT
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u00DF'));     // IDNA deviant
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\uFDFD'));     // expands by 11x (UTF-8) and 18x (UTF-16) NFKC
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u0390'));     // expands by 3x (UTF-8) NFD
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\u1F82'));     // expands by 4x (UTF-16) NFD
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\uFB2C'));     // expands by 3x (UTF-16) under NFC
+    this->funnyUnicode.push_back(this->encodeUtf8(U'\U0001D160')); // expands by 3x (UTF-8) under NFC
     this->funnyUnicode.push_back({0xf4, 0x8f, 0xbf, 0xbe});         // illegal outside end of max range U+10FFFF
     this->funnyUnicode.push_back({239, 191, 191});                  // 65535
     this->funnyUnicode.push_back({240, 144, 128, 128});             // 65536

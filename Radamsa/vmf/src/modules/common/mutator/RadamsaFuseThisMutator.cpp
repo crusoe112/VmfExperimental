@@ -29,7 +29,7 @@
  /**
   *
   */
-#include "RadamsaJumpSimilarMutator.hpp"
+#include "RadamsaFuseThisMutator.hpp"
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
@@ -37,16 +37,16 @@
 using namespace vmf;
 
 #include "ModuleFactory.hpp"
-REGISTER_MODULE(RadamsaJumpSimilarMutator);
+REGISTER_MODULE(RadamsaFuseThisMutator);
 
 /**
  * @brief Builder method to support the ModuleFactory
  * Constructs an instance of this class
  * @return Module* - Pointer to the newly created instance
  */
-Module* RadamsaJumpSimilarMutator::build(std::string name)
+Module* RadamsaFuseThisMutator::build(std::string name)
 {
-    return new RadamsaJumpSimilarMutator(name);
+    return new RadamsaFuseThisMutator(name);
 }
 
 /**
@@ -54,26 +54,26 @@ Module* RadamsaJumpSimilarMutator::build(std::string name)
  *
  * @param config - Configuration object
  */
-void RadamsaJumpSimilarMutator::init(ConfigInterface& config)
+void RadamsaFuseThisMutator::init(ConfigInterface& config)
 {
 
 }
 
 /**
- * @brief Construct a new RadamsaJumpSimilarMutator::RadamsaJumpSimilarMutator object
+ * @brief Construct a new RadamsaFuseThisMutator::RadamsaFuseThisMutator object
  *
  * @param name The of the name module
  */
-RadamsaJumpSimilarMutator::RadamsaJumpSimilarMutator(std::string name) : MutatorModule(name)
+RadamsaFuseThisMutator::RadamsaFuseThisMutator(std::string name) : MutatorModule(name)
 {
     // rand->randInit();
 }
 
 /**
- * @brief Destroy the RadamsaJumpSimilarMutator::RadamsaJumpSimilarMutator object
+ * @brief Destroy the RadamsaFuseThisMutator::RadamsaFuseThisMutator object
  *
  */
-RadamsaJumpSimilarMutator::~RadamsaJumpSimilarMutator()
+RadamsaFuseThisMutator::~RadamsaFuseThisMutator()
 {
 
 }
@@ -83,13 +83,38 @@ RadamsaJumpSimilarMutator::~RadamsaJumpSimilarMutator()
  *
  * @param registry - StorageRegistry object
  */
-void RadamsaJumpSimilarMutator::registerStorageNeeds(StorageRegistry& registry)
+void RadamsaFuseThisMutator::registerStorageNeeds(StorageRegistry& registry)
 {
     // This module does not register for a test case buffer key, because mutators are told which buffer to write in storage
     // by the input generator that calls them
 }
 
-void RadamsaJumpSimilarMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
+void RadamsaFuseThisMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator contents here
+    // Fuse buffer with itself
+
+    const size_t minimumSize{1u};
+    const size_t minimumSeedIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize) {
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+    }
+    if (minimumSeedIndex > originalSize - 1u) {
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+    }
+    if (originalBuffer == nullptr) {
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+    }
+
+    vector<char> data(originalBuffer, originalBuffer + originalSize);
+    std::cout<<"before fuse"<<std::endl; // todo deleteme
+    vector<char> new_data = fuse(data, this->rand);
+    std::cout<<"after fuse"<<std::endl; // todo deleteme
+
+    const size_t newBufferSize{new_data.size() + 1}; // +1 to implicitly append a null terminator
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
+    memset(newBuffer, 0u, newBufferSize);
+    memcpy(newBuffer, new_data.data(), new_data.size());
 }

@@ -39,15 +39,15 @@ namespace vmf
 /**
  *
  */
-class RadamsaJumpSimilarMutator: public MutatorModule, public RadamsaByteMutatorBase
+class RadamsaFuseThisMutator: public MutatorModule, public RadamsaByteMutatorBase
 {
     public:
 
         static Module* build(std::string name);
         virtual void init(ConfigInterface& config);
 
-        RadamsaJumpSimilarMutator(std::string name);
-        virtual ~RadamsaJumpSimilarMutator();
+        RadamsaFuseThisMutator(std::string name);
+        virtual ~RadamsaFuseThisMutator();
         virtual void registerStorageNeeds(StorageRegistry& registry);
         virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
 
