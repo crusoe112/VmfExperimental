@@ -30,7 +30,7 @@
 #include "gtest/gtest.h"
 #include "ModuleTestHelper.hpp"
 #include "SimpleStorage.hpp"
-#include "RadamsaFuseThisMutator.hpp"
+#include "RadamsaFuseNextMutator.hpp"
 #include "RuntimeException.hpp"
 #include "RadamsaFuse_helpers.hpp"
 
@@ -40,14 +40,14 @@ using vmf::ModuleTestHelper;
 using vmf::TestConfigInterface;
 using vmf::SimpleStorage;
 using vmf::StorageEntry;
-using vmf::RadamsaFuseThisMutator;
+using vmf::RadamsaFuseNextMutator;
 using vmf::BaseException;
 using vmf::RuntimeException;
 using std::string;
 
-class RadamsaFuseThisMutatorTest : public ::testing::Test {
+class RadamsaFuseNextMutatorTest : public ::testing::Test {
   protected:
-    RadamsaFuseThisMutator* theMutator;
+    RadamsaFuseNextMutator* theMutator;
     StorageModule* storage;
     StorageRegistry* registry;
     StorageRegistry* metadata;
@@ -55,17 +55,17 @@ class RadamsaFuseThisMutatorTest : public ::testing::Test {
     TestConfigInterface* config;
     int testCaseKey;
 
-    RadamsaFuseThisMutatorTest() 
+    RadamsaFuseNextMutatorTest() 
     {
       storage = new SimpleStorage("storage");
       registry = new StorageRegistry("TEST_INT", StorageRegistry::INT, StorageRegistry::ASCENDING);
       metadata = new StorageRegistry();
       testHelper = new ModuleTestHelper();
-      theMutator = new RadamsaFuseThisMutator("RadamsaFuseThisMutator");
+      theMutator = new RadamsaFuseNextMutator("RadamsaFuseNextMutator");
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaFuseThisMutatorTest() override {}
+    ~RadamsaFuseNextMutatorTest() override {}
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -96,14 +96,14 @@ class RadamsaFuseThisMutatorTest : public ::testing::Test {
     }
 };
 
-/*TEST_F(RadamsaFuseThisMutatorTest, BufferNotNull)
+/*TEST_F(RadamsaFuseNextMutatorTest, BufferNotNull)
 {
     // no way to test this without mocks
 }*/
 
-TEST_F(RadamsaFuseThisMutatorTest, OneByte)
+TEST_F(RadamsaFuseNextMutatorTest, OneByte)
 {   
-    string buffString = "g";
+    std::string buffString = "g";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -117,23 +117,19 @@ TEST_F(RadamsaFuseThisMutatorTest, OneByte)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        modBuff = modEntry->getBufferPointer(testCaseKey);
-    } 
+        ADD_FAILURE() << "No exception thrown";
+    }
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+    }
     catch (BaseException e)
     {
-        FAIL() << "Exception thrown: " << e.getReason();
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
     }
-
-    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-    string modString = string(modBuff);
-
-    // Not testing modBuff_len value, because result can be lt, gt, or equal to buff_len
-    EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
-    ASSERT_PRED2(isSubset, modString, buffString);
-    EXPECT_PRED2(isValidSelfFuse, modString, buffString);
 }
 
-TEST_F(RadamsaFuseThisMutatorTest, TwoBytes)
+TEST_F(RadamsaFuseNextMutatorTest, TwoBytes)
 {   
     string buffString = "gh";
 
@@ -162,10 +158,10 @@ TEST_F(RadamsaFuseThisMutatorTest, TwoBytes)
     // Not testing modBuff_len value, because result can be lt, gt, or equal to buff_len
     EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
     ASSERT_PRED2(isSubset, modString, buffString);
-    EXPECT_PRED2(isValidSelfFuse, modString, buffString);
+    EXPECT_PRED2(isValidTripleFuse, modString, buffString);
 }
 
-TEST_F(RadamsaFuseThisMutatorTest, TenBytes)
+TEST_F(RadamsaFuseNextMutatorTest, TenBytes)
 {   
     string buffString = "ghijklmnop";
 
@@ -194,5 +190,5 @@ TEST_F(RadamsaFuseThisMutatorTest, TenBytes)
     // Not testing modBuff_len value, because result can be lt, gt, or equal to buff_len
     EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
     ASSERT_PRED2(isSubset, modString, buffString);
-    EXPECT_PRED2(isValidSelfFuse, modString, buffString);
+    EXPECT_PRED2(isValidTripleFuse, modString, buffString);
 }

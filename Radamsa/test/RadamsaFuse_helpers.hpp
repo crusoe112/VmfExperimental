@@ -26,32 +26,13 @@
  *  
  * @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
  * ===========================================================================*/
+
 #pragma once
+#include <string>
+#include <vector>
 
-#include "MutatorModule.hpp"
-#include "StorageEntry.hpp"
-#include "RuntimeException.hpp"
-#include "RadamsaByteMutatorBase.hpp"
-#include "VmfRand.hpp"
+using std::string;
 
-namespace vmf
-{
-/**
- *
- */
-class RadamsaCloneSimilarMutator: public MutatorModule, public RadamsaByteMutatorBase
-{
-    public:
-
-        static Module* build(std::string name);
-        virtual void init(ConfigInterface& config);
-
-        RadamsaCloneSimilarMutator(std::string name);
-        virtual ~RadamsaCloneSimilarMutator();
-        virtual void registerStorageNeeds(StorageRegistry& registry);
-        virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
-
-    private:
-        VmfRand* rand = VmfRand::getInstance();
-};
-}
+bool isSubset(const string& modString, const string& buffString);
+bool isValidSelfFuse(const string& modString, const string& buffString);
+bool isValidTripleFuse(const string& modString, const string& buffString);

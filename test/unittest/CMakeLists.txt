@@ -61,7 +61,9 @@ SET(TEST_SRCS
   ../../Radamsa/test/RadamsaWidenCodePointMutatorTest.cpp
   ../../Radamsa/test/RadamsaInsertUnicodeMutatorTest.cpp
   ../../Radamsa/test/RadamsaModifyTextNumberMutatorTest.cpp
+  ../../Radamsa/test/RadamsaFuse_helpers.cpp
   ../../Radamsa/test/RadamsaFuseThisMutatorTest.cpp
+  ../../Radamsa/test/RadamsaFuseNextMutatorTest.cpp
 )
 
 add_executable(VmfTest ${TEST_SRCS})
