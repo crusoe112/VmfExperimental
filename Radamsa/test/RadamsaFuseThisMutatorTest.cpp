@@ -42,6 +42,7 @@ using vmf::StorageEntry;
 using vmf::RadamsaFuseThisMutator;
 using vmf::BaseException;
 using vmf::RuntimeException;
+using std::string;
 
 class RadamsaFuseThisMutatorTest : public ::testing::Test {
   protected:
@@ -99,9 +100,30 @@ class RadamsaFuseThisMutatorTest : public ::testing::Test {
     // no way to test this without mocks
 }*/
 
+bool isSubset(const string& modString, const string& buffString) {
+    for (char c : modString) {
+        if (buffString.find(c) == string::npos) return false;
+    }
+    return true;
+}
+
+bool isValidSelfFuse(const string& modString, const string& buffString) {
+    // Returns true if you can combine two substrings of buffString to get modString
+
+    for (size_t i = 0; i < buffString.size(); ++i) {
+        for(size_t j = 0; j < buffString.size(); ++j) {
+            const string prefix = buffString.substr(0, i);
+            const string suffix = buffString.substr(j); // j to end of buffString
+            const string fusion = prefix + suffix;
+            if (fusion == modString) return true; 
+        }
+    }
+    return false;
+}
+
 TEST_F(RadamsaFuseThisMutatorTest, OneByte)
 {   
-    std::string buffString = "g";
+    string buffString = "g";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -123,8 +145,74 @@ TEST_F(RadamsaFuseThisMutatorTest, OneByte)
     }
 
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
-    std::string modString = std::string(modBuff);
+    string modString = string(modBuff);
 
-    ASSERT_NE(buffString, buffString);
-    EXPECT_GE(modBuff_len, buff_len + 1);
+    // Not testing modBuff_len value, because result can be lt, gt, or equal to buff_len
+    EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
+    ASSERT_PRED2(isSubset, modString, buffString);
+    EXPECT_PRED2(isValidSelfFuse, modString, buffString);
+}
+
+TEST_F(RadamsaFuseThisMutatorTest, TwoBytes)
+{   
+    string buffString = "gh";
+
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    string modString = string(modBuff);
+
+    // Not testing modBuff_len value, because result can be lt, gt, or equal to buff_len
+    EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
+    ASSERT_PRED2(isSubset, modString, buffString);
+    EXPECT_PRED2(isValidSelfFuse, modString, buffString);
+}
+
+TEST_F(RadamsaFuseThisMutatorTest, TenBytes)
+{   
+    string buffString = "ghijklmnop";
+
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    string modString = string(modBuff);
+
+    // Not testing modBuff_len value, because result can be lt, gt, or equal to buff_len
+    EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
+    ASSERT_PRED2(isSubset, modString, buffString);
+    EXPECT_PRED2(isValidSelfFuse, modString, buffString);
 }

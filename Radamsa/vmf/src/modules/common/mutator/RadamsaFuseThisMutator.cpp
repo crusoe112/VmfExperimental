@@ -91,7 +91,8 @@ void RadamsaFuseThisMutator::registerStorageNeeds(StorageRegistry& registry)
 
 void RadamsaFuseThisMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // Fuse buffer with itself
+    // Combines a prefix substring and a suffix substring from random indexes of the buffer
+    // NOTE: Very likely to return buffer unmodified for small buffer sizes
 
     const size_t minimumSize{1u};
     const size_t minimumSeedIndex{0u};
@@ -109,9 +110,7 @@ void RadamsaFuseThisMutator::mutateTestCase(StorageModule& storage, StorageEntry
     }
 
     vector<char> data(originalBuffer, originalBuffer + originalSize);
-    std::cout<<"before fuse"<<std::endl; // todo deleteme
-    vector<char> new_data = fuse(data, this->rand);
-    std::cout<<"after fuse"<<std::endl; // todo deleteme
+    vector<char> new_data = fuse(data, data, this->rand);
 
     const size_t newBufferSize{new_data.size() + 1}; // +1 to implicitly append a null terminator
     char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};

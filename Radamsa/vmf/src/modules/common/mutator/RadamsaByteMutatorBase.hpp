@@ -32,12 +32,15 @@
 
 #include "RadamsaMutatorBase.hpp"
 #include <set>
+#include <optional>
 
 using std::vector;
 using std::isdigit;
 using std::pair;
 using std::set;
-using std::tie;
+using std::optional;
+using std::nullopt;
+using std::move;
 
 namespace vmf
 {
@@ -142,134 +145,150 @@ public:
     }
 
     template<typename T>
-    pair<T, T> randomPair(vector<T>& data, VmfRand* rand) {
-        T elemA = data[rand->randBetween(0, data.size() - 1)];
-        T elemB = data[rand->randBetween(0, data.size() - 1)];
+    pair<vector<vector<T>>, vector<vector<T>>> getAlternateSuffixes(
+        const vector<T>& theList, 
+        VmfRand* rand
+    ) {
+        // getSuffixes, but randomize which output list gets each suffix
+        // NOTE: Very likely to return an empty pair for small buffer sizes
 
-        return pair<T, T>(elemA, elemB);
-    }
-
-    template<typename T>
-    pair<vector<vector<T>>, vector<vector<T>>> getInitialSuffixes(vector<T>& data, VmfRand* rand) {
-        vector<vector<T>> new_listA, new_listB;
-        vector<T> sliceA, sliceB;
-
-        for (size_t i = 0; i < data.size(); ++i) {
-            if (rand->randBetween(0, 1) == 0) {
-                sliceA = vector<T>(data.begin() + i, data.end());
-
-                if (!sliceA.empty()) {
-                    new_listB.push_back(sliceB);
-                    sliceB.clear();
-                }
-            }
-            else {
-                sliceB = vector<T>(data.begin() + i, data.end());
-
-                if (!sliceB.empty()) {
-                    new_listA.push_back(sliceB);
-                    sliceA.clear();
-                }
-            }
-        }
-
-        return {new_listA, new_listB};
-    }
-
-    template<typename T> 
-    pair<vector<vector<T>>, vector<vector<T>>> splitPrefixes(const vector<vector<T>>& prefixes, const vector<vector<T>>& suffixes, VmfRand* rand) {
-        vector<vector<T>> new_prefixes;
-        vector<vector<T>> suffixes_copy = suffixes;
-
-        set<T> charSuffix;          // tracks unique first elements in prefixes
-        set<vector<T>> hashSuffix;  // collects suffixes shorter than len
-
-        // assuming prefixes is sorted by length
-        for (const vector<T> prefix : prefixes) {
-            if (prefix.empty()) continue;
-
-            const T key = prefix[0];
-            if (charSuffix.find(key) == charSuffix.end()) { // if key wasn't found...
-                new_prefixes.push_back(prefix);
-                charSuffix.insert(key);
-                
-                // keep suffixes with length >= len, send others to hashSuffix
-                size_t len = prefix.size() - 1;
-                vector<vector<T>> keptSuffixes;
-                for (vector<T> suffix : suffixes_copy) {
-                    if (suffix.size() < len) {
-                        hashSuffix.insert(suffix);
-                    }
-                    else {
-                        keptSuffixes.push_back(suffix);
-                    }
-                }
-                suffixes_copy = std::move(keptSuffixes);
-            }
-        }
-
-        vector<vector<T>> new_suffixes(hashSuffix.begin(), hashSuffix.end());
-
-        return {new_prefixes, new_suffixes};
-    }
-
-    template<typename T>
-    pair<vector<T>, vector<T>> findJumpPoints(vector<T>& data, VmfRand* rand) {
-        int fuel = 100000;
-        
         vector<vector<T>> listA, listB;
-        std::cout<<"before getInitialSuffixes"<<std::endl; // todo deleteme
-        tie(listA, listB) = getInitialSuffixes(data, rand);
-        std::cout<<"after getInitialSuffixes"<<std::endl; // todo deleteme
-        //TODO error checking here?
-        
-        while (true) {
-            if (fuel < 0 || rand->randBetween(0, 7) == 0) {
-                std::cout<<"before randomPair"<<std::endl; // todo deleteme
-                pair<T, T> result = randomPair(data, rand);
-                std::cout<<"after randomPair"<<std::endl; // todo deleteme
-                vector<T> from(result.first, result.first +1);
-                vector<T> to(result.second, result.second + 1);
-                return pair<vector<T>, vector<T>>(from, to);
-            }
-            else {
-                vector<vector<T>> nodeA, nodeB;
-                std::cout<<"before splitPrefixes"<<std::endl; // todo deleteme
-                tie(nodeA, nodeB) = splitPrefixes(listA, listB, rand);
-                std::cout<<"after splitPrefixes"<<std::endl; // todo deleteme
-                if (nodeA.empty() || nodeB.empty()) {
-                    std::cout<<"before randomPair"<<std::endl; // todo deleteme
-                    pair<T, T> result = randomPair(data, rand);
-                    std::cout<<"after randomPair"<<std::endl; // todo deleteme
-                    vector<T> from(result.first, result.first +1);
-                    vector<T> to(result.second, result.second + 1);
-                    return pair<vector<T>, vector<T>>(from, to);
+        vector<T> subListA, subListB;
+        for (size_t i = 0; i < theList.size(); ++i) {
+            if (rand->randBetween(0, 1) == 0) {
+                subListA.assign(theList.begin() + i, theList.end());
+                if(!subListB.empty()) {
+                    listB.push_back(move(subListB));
+                    subListB.clear();
                 }
-                else {
+            } else {
+                subListB.assign(theList.begin() + i, theList.end());
+                if(!subListA.empty()) {
+                    listA.push_back(move(subListA));
+                    subListA.clear();
+                }
+            }
+        }
+        return {listA, listB};
+    }
+
+    template<typename T>
+    vector<vector<T>> getSuffixes(const vector<T>& theList) {
+        // Grabs all possible slices that end at theList's end
+
+        vector<vector<T>> result;
+        for(size_t i = 0; i < theList.size(); ++i) {
+            result.push_back(vector<T>(theList.begin() + i, theList.end()));
+        }
+        return result;
+    }
+
+    template<typename T>
+    pair<vector<vector<T>>, vector<vector<T>>> getInitialSuffixes(
+        const vector<T>& a, 
+        const vector<T>& b, 
+        VmfRand* rand
+    ) {
+        if (a == b) return getAlternateSuffixes(a, rand);
+        return {getSuffixes(a), getSuffixes(b)};
+    }
+
+    template<typename T>
+    optional<pair<vector<T>, vector<T>>> getAnyPositionPair(
+        vector<vector<T>>& a, 
+        vector<vector<T>>& b, 
+        VmfRand* rand
+    ) {
+        if (a.empty() || b.empty()) return nullopt;
+
+        size_t aIndex = rand->randBetween(0, a.size() - 1); // -1 because randBetween is max inclusive
+        size_t bIndex = rand->randBetween(0, b.size() - 1);
+        vector<T> aElem = a[aIndex];
+        vector<T> bElem = b[bIndex];
+        return pair<vector<T>, vector<T>>(aElem, bElem);
+    }
+
+    template<typename T>
+    pair<vector<vector<T>>, vector<vector<T>>> splitPrefixes(
+        vector<vector<T>>& prefixes, 
+        vector<vector<T>>& suffixes
+    ) {
+        set<T> used;
+        set<vector<T>> hashSuffix;
+        vector<vector<T>> newPrefixes;
+        for (vector<T> prefix : prefixes) {
+            if(!prefix.empty() && used.find(prefix[0]) == used.end()) { // if first char of this prefix hasn't been seen yet...
+                used.insert(prefix[0]);
+                newPrefixes.push_back(prefix);
+                suffixes.erase( // erase-remove idiom. moves all suffixes shorter than prefix to hashSuffix
+                    std::remove_if( // shifts matching elements to the end
+                        suffixes.begin(), 
+                        suffixes.end(), 
+                        [&](const vector<T>& suffix) {
+                            if (suffix.size() < prefix.size()) {
+                                hashSuffix.insert(suffix);  // stores them in hashSuffix prior to removal from suffixes
+                                return true;
+                            }
+                            return false;
+                        }
+                    ),
+                    suffixes.end()  // marks matching elements for erasure
+                );
+            }
+        }
+        return {
+            newPrefixes, 
+            vector<vector<T>>(hashSuffix.begin(), hashSuffix.end()) // convert set of slices to vector of slices
+        };
+    }
+
+    template<typename T>
+    pair<vector<T>, vector<T>> findJumpPoints(
+        const vector<T>& a, 
+        const vector<T>& b, 
+        VmfRand* rand
+    ) {
+        // NOTE: Very likely to return a and b unmodified for small buffer sizes if a==b
+
+        int fuel = 100000;
+        const int searchStopIp = 8;
+
+        auto [listA, listB] = getInitialSuffixes(a, b, rand);
+        if (listA.empty() || listB.empty()) return {a, b};
+
+        while (true) {
+            if (fuel < 0 || rand->randBetween(0, searchStopIp) == 0) {
+                if (auto result = getAnyPositionPair(listA, listB, rand)) return *result;
+                return {a, b};
+            } else {
+                auto [nodeA, nodeB] = splitPrefixes(listA, listB);
+                if (nodeA.empty() || nodeB.empty()) {
+                    if (auto result = getAnyPositionPair(listA, listB, rand)) return *result;
+                    return {a, b};
+                } else {
                     listA = nodeA;
                     listB = nodeB;
                     fuel -= static_cast<int>(listA.size() + listB.size());
                 }
             }
         }
-
-
     }
 
     template<typename T>
-    vector<T> fuse(vector<T>& data, VmfRand* rand) {
-        vector<T> from, to;
-        std::cout<<"before findJumpPoints"<<std::endl; // todo deleteme
-        tie(from, to) = findJumpPoints(data, rand);
-        std::cout<<"after findJumpPoints"<<std::endl; // todo deleteme
+    vector<T> fuse(const vector<T>& a, const vector<T>& b, VmfRand* rand) {
+        // Combines a prefix substring from "a" and a suffix substring from "b"
+        // NOTE: Very likely to return input unmodified for small buffer sizes if a==b
 
-        std::cout<<"before extract prefix"<<std::endl; // todo deleteme
-        std::cout<<"data.size():"+std::to_string(data.size())+", from.size():"+std::to_string(from.size())<<std::endl; // todo deleteme
-        vector<T> result(data.begin(), data.end() - from.size());   // extract prefix
-        std::cout<<"after extract prefix, before insert"<<std::endl; // todo deleteme
-        result.insert(result.end(), to.begin(), to.end());
-        std::cout<<"after insert"<<std::endl; // todo deleteme
-        return result;
+        if (a.empty() || b.empty()) return a;
+
+        auto [from, to] = findJumpPoints(a, b, rand);
+        
+        if (std::equal(from.begin(), from.end(), a.end() - from.size())) {
+            vector<T> result(a.begin(), a.end() - from.size()); // keep prefix
+            result.insert(result.end(), to.begin(), to.end());  // append suffix
+            return result;
+        }
+        return a;
     }
 };
 }
