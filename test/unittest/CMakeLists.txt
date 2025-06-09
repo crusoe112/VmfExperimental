@@ -64,6 +64,7 @@ SET(TEST_SRCS
   ../../Radamsa/test/RadamsaFuse_helpers.cpp
   ../../Radamsa/test/RadamsaFuseThisMutatorTest.cpp
   ../../Radamsa/test/RadamsaFuseNextMutatorTest.cpp
+  ../../Radamsa/test/RadamsaFuseOldMutatorTest.cpp
 )
 
 add_executable(VmfTest ${TEST_SRCS})

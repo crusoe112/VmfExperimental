@@ -35,4 +35,5 @@ using std::string;
 
 bool isSubset(const string& modString, const string& buffString);
 bool isValidSelfFuse(const string& modString, const string& buffString);
+bool isValidDoubleFuse(const string& modString, const string& buffString);
 bool isValidTripleFuse(const string& modString, const string& buffString);

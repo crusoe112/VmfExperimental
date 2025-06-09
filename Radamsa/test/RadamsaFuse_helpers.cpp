@@ -69,16 +69,40 @@ vector<string> getSuffixes(const string& data) {
     return suffixes;
 }
 
+bool isValidDoubleFuse(const string& mod, const string& buff) {
+    const size_t midpoint = buff.length() / 2;
+    const string buff_firstHalf = buff.substr(0, midpoint);
+    const string buff_secondHalf = buff.substr(midpoint);
+
+    const vector<string> buff_firstHalf_prefixes = getPrefixes(buff_firstHalf);
+    const vector<string> buff_secondHalf_suffixes = getSuffixes(buff_secondHalf);
+
+    vector<string> fusions;
+    for (string prefix : buff_firstHalf_prefixes) {
+        for (string suffix : buff_secondHalf_suffixes) {
+            fusions.push_back(prefix + suffix);
+        }
+    }
+
+    for (string fusionA : fusions) {
+        for (string fusionB : fusions) {
+            string doubleFusion = fusionA + fusionB;
+            if (mod == doubleFusion) return true;
+        }
+    }
+    return false;
+}
+
 bool isValidTripleFuse(const string& mod, const string& buff) {
     // returns true if modString is a form of: prefix(prefix(buffer_firstHalf) + suffix(buffer)) + suffix(buffer_secondHalf)
 
     const size_t midpoint = buff.length() / 2;
-    string buff_firstHalf = buff.substr(0, midpoint);
-    string buff_secondHalf = buff.substr(midpoint);
+    const string buff_firstHalf = buff.substr(0, midpoint);
+    const string buff_secondHalf = buff.substr(midpoint);
 
-    vector<string> buff_firstHalf_prefixes = getPrefixes(buff_firstHalf);
-    vector<string> buff_suffixes = getSuffixes(buff);
-    vector<string> buff_secondHalf_suffixes = getSuffixes(buff_secondHalf);
+    const vector<string> buff_firstHalf_prefixes = getPrefixes(buff_firstHalf);
+    const vector<string> buff_suffixes = getSuffixes(buff);
+    const vector<string> buff_secondHalf_suffixes = getSuffixes(buff_secondHalf);
 
     vector<string> ab_fusions;
     for (string prefix : buff_firstHalf_prefixes) {

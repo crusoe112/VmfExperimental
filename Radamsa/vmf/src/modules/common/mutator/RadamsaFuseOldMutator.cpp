@@ -29,7 +29,7 @@
  /**
   *
   */
-#include "RadamsaFuseDataMutator.hpp"
+#include "RadamsaFuseOldMutator.hpp"
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
@@ -40,16 +40,16 @@ using std::pair;
 using std::set;
 
 #include "ModuleFactory.hpp"
-REGISTER_MODULE(RadamsaFuseDataMutator);
+REGISTER_MODULE(RadamsaFuseOldMutator);
 
 /**
  * @brief Builder method to support the ModuleFactory
  * Constructs an instance of this class
  * @return Module* - Pointer to the newly created instance
  */
-Module* RadamsaFuseDataMutator::build(std::string name)
+Module* RadamsaFuseOldMutator::build(std::string name)
 {
-    return new RadamsaFuseDataMutator(name);
+    return new RadamsaFuseOldMutator(name);
 }
 
 /**
@@ -57,26 +57,26 @@ Module* RadamsaFuseDataMutator::build(std::string name)
  *
  * @param config - Configuration object
  */
-void RadamsaFuseDataMutator::init(ConfigInterface& config)
+void RadamsaFuseOldMutator::init(ConfigInterface& config)
 {
 
 }
 
 /**
- * @brief Construct a new RadamsaFuseDataMutator::RadamsaFuseDataMutator object
+ * @brief Construct a new RadamsaFuseOldMutator::RadamsaFuseOldMutator object
  *
  * @param name The of the name module
  */
-RadamsaFuseDataMutator::RadamsaFuseDataMutator(std::string name) : MutatorModule(name)
+RadamsaFuseOldMutator::RadamsaFuseOldMutator(std::string name) : MutatorModule(name)
 {
     // rand->randInit();
 }
 
 /**
- * @brief Destroy the RadamsaFuseDataMutator::RadamsaFuseDataMutator object
+ * @brief Destroy the RadamsaFuseOldMutator::RadamsaFuseOldMutator object
  *
  */
-RadamsaFuseDataMutator::~RadamsaFuseDataMutator()
+RadamsaFuseOldMutator::~RadamsaFuseOldMutator()
 {
 
 }
@@ -86,13 +86,43 @@ RadamsaFuseDataMutator::~RadamsaFuseDataMutator()
  *
  * @param registry - StorageRegistry object
  */
-void RadamsaFuseDataMutator::registerStorageNeeds(StorageRegistry& registry)
+void RadamsaFuseOldMutator::registerStorageNeeds(StorageRegistry& registry)
 {
     // This module does not register for a test case buffer key, because mutators are told which buffer to write in storage
     // by the input generator that calls them
 }
 
-void RadamsaFuseDataMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
+void RadamsaFuseOldMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO: Add the mutator desc here
+    // Combine two random fusions of the two halves of the buffer
+
+    const size_t minimumSize{2u};
+    const size_t minimumSeedIndex{0u};
+    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+
+    if (originalSize < minimumSize) {
+        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+    }
+    if (minimumSeedIndex > originalSize - 1u) {
+        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+    }
+    if (originalBuffer == nullptr) {
+        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+    }
+
+    vector<char> data(originalBuffer, originalBuffer + originalSize);
+
+    const size_t midpoint = data.size() / 2;
+    const vector<char> data_firstHalf(data.begin(), data.begin() + midpoint);
+    const vector<char> data_secondHalf(data.begin() + midpoint, data.end());
+
+    vector<char> a = fuse(data_firstHalf, data_secondHalf, this->rand);
+    const vector<char> b = fuse(data_firstHalf, data_secondHalf, this->rand);
+    a.insert(a.end(), b.begin(), b.end());
+
+    const size_t newBufferSize{a.size() + 1}; // +1 to implicitly append a null terminator
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
+    memset(newBuffer, 0u, newBufferSize);
+    memcpy(newBuffer, a.data(), a.size());
 }
