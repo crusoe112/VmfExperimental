@@ -59,6 +59,7 @@ add_library(Radamsa SHARED
   common/mutator/RadamsaFuseThisMutator.cpp                 # -ft
   common/mutator/RadamsaFuseNextMutator.cpp                 # -fn
   common/mutator/RadamsaFuseOldMutator.cpp                  # -fo
+  common/mutator/RadamsaAsciiBadMutator.cpp                 # -ab
 )
 
 # Build-time dependencies for Radamsa
