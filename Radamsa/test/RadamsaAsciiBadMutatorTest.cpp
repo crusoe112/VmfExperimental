@@ -32,7 +32,6 @@
 #include "SimpleStorage.hpp"
 #include "RadamsaAsciiBadMutator.hpp"
 #include "RuntimeException.hpp"
-#include "RadamsaFuse_helpers.hpp"
 
 using vmf::StorageModule;
 using vmf::StorageRegistry;
@@ -96,15 +95,20 @@ class RadamsaAsciiBadMutatorTest : public ::testing::Test {
     }
 };
 
+/* NOTE: 
+ * Due to the shear amount of cases here,
+ * and the fact that we can't currently control values
+ * returned by VmfRand, content tests will be simplified.
+ */
+
 /*TEST_F(RadamsaAsciiBadMutatorTest, BufferNotNull)
 {
     // no way to test this without mocks
 }*/
 
-TEST_F(RadamsaAsciiBadMutatorTest, NotAscii)
-{   
-    GTEST_SKIP();
-    std::string buffString = "g";
+TEST_F(RadamsaAsciiBadMutatorTest, FiveBytesPrintable)
+{
+    string buffString = "ghijk";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -130,10 +134,39 @@ TEST_F(RadamsaAsciiBadMutatorTest, NotAscii)
     }
 }
 
-TEST_F(RadamsaAsciiBadMutatorTest, TwoBytes)
+TEST_F(RadamsaAsciiBadMutatorTest, SixBytesMixed)
+{
+    string buffString = "ghijkl";
+
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+
+    buff[3] = 127;  // non-printable ascii
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        ADD_FAILURE() << "No exception thrown";
+    }
+    catch (RuntimeException e)
+    {
+        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+    }
+    catch (BaseException e)
+    {
+        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+    }
+}
+
+TEST_F(RadamsaAsciiBadMutatorTest, SixBytesPrintable)
 {   
-    GTEST_SKIP();
-    string buffString = "gh";
+    string buffString = "ghijkl";
 
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
@@ -157,8 +190,42 @@ TEST_F(RadamsaAsciiBadMutatorTest, TwoBytes)
     size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
     string modString = string(modBuff);
 
-    // Not testing modBuff_len value, because result can be lt, gt, or equal to buff_len
+    EXPECT_GE(modBuff_len - 1, 2);  // min length is a single 2B string from sillyStrings 
+    EXPECT_LE(modBuff_len - 1, buff_len + 65536);   // max length is appending max number of newlines
     EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
-    ASSERT_PRED2(isSubset, modString, buffString);
-    EXPECT_PRED2(isValidDoubleFuse, modString, buffString);
+    // Content tests would go here
+}
+
+TEST_F(RadamsaAsciiBadMutatorTest, TwoChunks)
+{   
+    string buffString = "ghijkl4mn";
+
+    StorageEntry* baseEntry = storage->createNewEntry();
+    StorageEntry* modEntry = storage->createNewEntry();
+    char* modBuff;
+
+    const size_t buff_len = buffString.length();
+    char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
+    for(size_t i{0}; i < buff_len; ++i) {
+        buff[i] = buffString[i];
+    }
+
+    buff[6] = 127;  // non-printable ascii
+
+    try{
+        theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
+    } 
+    catch (BaseException e)
+    {
+        FAIL() << "Exception thrown: " << e.getReason();
+    }
+
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    string modString = string(modBuff);
+
+    EXPECT_GE(modBuff_len - 1, 2);  // min length is a single 2B string from sillyStrings 
+    EXPECT_LE(modBuff_len - 1, buff_len + 65536);   // max length is appending max number of newlines
+    EXPECT_EQ(modBuff[modBuff_len - 1], '\0');
+    // Content tests would go here
 }

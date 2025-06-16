@@ -97,7 +97,6 @@ void RadamsaAsciiBadMutator::registerStorageNeeds(StorageRegistry& registry)
     // by the input generator that calls them
 }
 
-
 // Helper stuff starts here
 struct Delimited {
     // Chunk of Data, usually with delimiting quotes enclosing it
@@ -236,8 +235,6 @@ private:
 
         return;
     }
-
-    
 };
 
 struct Data {
@@ -303,7 +300,7 @@ private:
     static bool parseBytes(
         const vector<Byte>& input, 
         size_t minTexty, 
-        vector<Data> out
+        vector<Data>& out
     ) {
         // Splits input into Data chunks
         // The first chunk must be a run of a least "minTexty" printable ASCII bytes
@@ -356,7 +353,11 @@ private:
 
 void RadamsaAsciiBadMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
-    // TODO
+    /* Mutate a single "chunk" of continuous printable ASCII by:
+     * inserting a random combination of 1-19 "silly strings" at a random index,
+     * replacing everything after a random index with a random combination of 1-19 "silly strings",
+     * or appending between 0 and 65,536 newlines
+     */
 
     const size_t minimumSize{1u};
     const size_t minimumSeedIndex{0u};
@@ -381,9 +382,10 @@ void RadamsaAsciiBadMutator::mutateTestCase(StorageModule& storage, StorageEntry
     }
 
     parsedAscii->mutate(this->rand);
+    vector<Byte> mutatedBytes = parsedAscii->unlex();
 
-    const size_t newBufferSize{parsedAscii->chunks.size() + 1}; // +1 to implicitly append a null terminator
+    const size_t newBufferSize{mutatedBytes.size() + 1}; // +1 to implicitly append a null terminator
     char* newBuffer{newEntry->allocateBuffer(testCaseKey, newBufferSize)};
     memset(newBuffer, 0u, newBufferSize);
-    memcpy(newBuffer, parsedAscii->chunks.data(), parsedAscii->chunks.size());
+    memcpy(newBuffer, mutatedBytes.data(), mutatedBytes.size());
 }

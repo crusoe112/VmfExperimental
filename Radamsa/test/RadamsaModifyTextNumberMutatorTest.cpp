@@ -94,10 +94,10 @@ class RadamsaModifyTextNumberMutatorTest : public ::testing::Test {
     int testCaseKey;
 };
 
-/* NOTE
+/* NOTE: 
  * Due to the shear amount of cases here,
  * and the fact that we can't currently control values
- * returned by VmfRand, these tests will be simplified.
+ * returned by VmfRand, content tests will be simplified.
  */
 
 /*TEST_F(RadamsaModifyTextNumberMutatorTest, BufferNotNull)
