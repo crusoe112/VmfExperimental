@@ -31,8 +31,8 @@
 find_package(Threads REQUIRED)
 
 SET(TEST_SRCS
-  ${VMF_INSTALL}/../../test/unittest/ModuleTestHelper.cpp
-  ${VMF_INSTALL}/../../test/unittest/TestConfigInterface.cpp
+  ${CMAKE_INSTALL_PREFIX}/../../test/unittest/ModuleTestHelper.cpp
+  ${CMAKE_INSTALL_PREFIX}/../../test/unittest/TestConfigInterface.cpp
   ../../Radamsa/test/RadamsaDecrementByteMutatorTest.cpp
   ../../Radamsa/test/RadamsaDropByteMutatorTest.cpp
   ../../Radamsa/test/RadamsaFlipByteMutatorTest.cpp
@@ -73,19 +73,19 @@ add_executable(VmfTest ${TEST_SRCS})
 set_target_properties(VmfTest PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories(VmfTest PUBLIC
-  ${VMF_INSTALL}/include
-  ${VMF_INSTALL}/../../vmf
-  ${VMF_INSTALL}/../../vmf/dependencies/googletest/googletest/include
-  ${VMF_INSTALL}/../../test/unittest
-  ${VMF_INSTALL}/../../vmf/src/framework/baseclasses
-  ${VMF_INSTALL}/../../vmf/src/framework/util
+  ${CMAKE_INSTALL_PREFIX}/include
+  ${CMAKE_INSTALL_PREFIX}/../../vmf
+  ${CMAKE_INSTALL_PREFIX}/../../vmf/dependencies/googletest/googletest/include
+  ${CMAKE_INSTALL_PREFIX}/../../test/unittest
+  ${CMAKE_INSTALL_PREFIX}/../../vmf/src/framework/baseclasses
+  ${CMAKE_INSTALL_PREFIX}/../../vmf/src/framework/util
   ../../Radamsa/vmf/src/modules/common/mutator
 )
 
 target_link_directories(VmfTest PUBLIC
-  ${VMF_INSTALL}/lib
-  ${VMF_INSTALL}/plugins
-  ${VMF_INSTALL}/../lib
+  ${CMAKE_INSTALL_PREFIX}/lib
+  ${CMAKE_INSTALL_PREFIX}/plugins
+  ${CMAKE_INSTALL_PREFIX}/../lib
 )
 
 target_link_libraries(VmfTest

@@ -61,7 +61,7 @@ RUN set -ex \
     && cd /usr/local/src/VmfExperimental \
     && mkdir build \
     && cd build \
-    && cmake -DVMF_INSTALL=/usr/local/src/VaderModularFuzzer/build/vmf_install .. \
+    && cmake -DCMAKE_INSTALL_PREFIX=/usr/local/src/VaderModularFuzzer/build/vmf_install .. \
     && make -j \
     && make install \
     && set +ex
