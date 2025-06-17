@@ -2,7 +2,7 @@
  * Vader Modular Fuzzer (VMF)
  * Copyright (c) 2021-2025 The Charles Stark Draper Laboratory, Inc.
  * <vmf@draper.com>
- *
+ *  
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 (only) as 
  * published by the Free Software Foundation.
@@ -17,31 +17,32 @@
  *  
  * @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
  * ===========================================================================*/
-#ifndef MYMUTATOR_H
-#define MYMUTATOR_H
+#pragma once
 
-#include "MutatorModule.hpp"
-#include "StorageEntry.hpp"
+#include "OutputModule.hpp"
 
-using namespace vmf;
-
-class MyMutator : public MutatorModule
+namespace vmf
 {
+/**
+ * @brief Output module that computes a hash of fuzzer's created testcases for determinism validation.
+ *
+ */
+class DeterminismTesterOutput : public OutputModule {
 public:
     static Module* build(std::string name);
     virtual void init(ConfigInterface& config);
-    
-    MyMutator(std::string name);
-    virtual ~MyMutator();
+
+    DeterminismTesterOutput(std::string name);
+    virtual ~DeterminismTesterOutput();
+
     virtual void registerStorageNeeds(StorageRegistry& registry);
-    virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
-    
+    virtual void run(StorageModule& storage);
+    virtual void shutdown(StorageModule& storage);
+
 private:
 
+    int count;
+    int testCaseKey;
+    size_t checksum = 0;
 };
-
-#endif
-
-/* Local Variables:  */
-/* mode: c++         */
-/* End:              */
+}
