@@ -18,13 +18,5 @@
 # @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
 #===============================================================================
 
-add_subdirectory(vmf/src)
-
-#install sample configuration files
-install(DIRECTORY test DESTINATION
-  DESTINATION ${CMAKE_INSTALL_PREFIX}
-  PATTERN "*.cpp" EXCLUDE
-  PATTERN "*.h" EXCLUDE
-  PATTERN "README.md" EXCLUDE
-)
+add_subdirectory(modules)
 

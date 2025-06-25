@@ -6,9 +6,11 @@ This repository is a collection of VMF module packages (sets of related modules)
 Top-level directories are individual packages. Each package contains source code for one or more VMF
 modules along with associated data, tests, and documentation.
 
-Within each package we suggest the following directory hierarchy for source code:
-* Second-level directory identifies the platform(s) the modules will run on (linux, windows, common, etc.)
-* Third-level directory identifies the specific module type
+Within each package we suggest using the same directory hierarchy as is used in the main 
+VaderModularFuzzer repository:
+* All source code is under `vmf/src/modules/`
+* Next-level directory identifies the platform(s) the modules will run on (linux, windows, common, etc.)
+* Lowest-level directory identifies the specific module type
 
 ```
 /
@@ -16,20 +18,20 @@ Within each package we suggest the following directory hierarchy for source code
     |-- data
     |-- docs
     |-- test
-    |-- src
-        |-- common
+    |-- vmf/src/modules/common
 	    |-- mutator
-	    |-- output
-    |-- submodules
 ```
 
 ## Building and installing experimental module packages
+
 VMF is built using CMake
 
 Building the Experimental repository also requires an installed instance of VMF. It may be installed
 in a public location like `/usr/local/vmf` or in the default location within a VMF source tree like
 `/home/userdir/VaderModularFuzzer/build/vmf_install`. Specify the full path to the VMF install using
-`-DVMF_INSTALL=/path/to/VMF`.
+`-DCMAKE_INSTALL_PREFIX=/path/to/VMF`.
+
+### Linux
 
 Execute the following commands to build the VMF experimental modules:
 
@@ -37,8 +39,30 @@ Execute the following commands to build the VMF experimental modules:
 # from the top VmfExperimental directory:
 mkdir build
 cd build
-cmake -DVMF_INSTALL=<path to VMF install> .. && make
+cmake -DCMAKE_INSTALL_PREFIX=<path to VMF install> .. && make
 ```
+
+### Windows
+
+Run the Developer Command Prompt for Visual Studio (e.g. "Developer Command Prompt VS 2022"), and
+navigate to the VMF directory.  Then execute the following commands to generation a solution file
+for VMF.  The exact version of visual studio must be specified in the final command -- here we
+specify Visual Studio 2022 Version 17.x.  Use `cmake --help` to see additional generation options.
+
+*Note: The -DCMAKE_INSTALL_PREFIX may be used to optionally specify an install location other than
+the default VMF in-tree install location (build\vmf_install).*
+
+```powershell
+#from \path\to\vmf directory
+mkdir build
+cd build
+cmake -G "Visual Studio 17 2022" ..
+#Or optionally use this version instead to specify an install path
+#cmake -G "Visual Studio 17 2022" -DCMAKE_INSTALL_PREFIX=<your install path here> ..
+cmake --build . --target INSTALL --config Release
+```
+You may alternatively open the VmfExtension.sln file that has been generated in the build directory 
+and build the INSTALL target in the GUI.
 
 ### Installing experimental modules
 

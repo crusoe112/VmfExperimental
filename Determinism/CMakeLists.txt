@@ -20,11 +20,12 @@
 
 add_subdirectory(vmf/src)
 
-#install sample configuration files
+# Install sample configuration files
 install(DIRECTORY test DESTINATION
-  DESTINATION ${CMAKE_INSTALL_PREFIX}
-  PATTERN "*.cpp" EXCLUDE
-  PATTERN "*.h" EXCLUDE
-  PATTERN "README.md" EXCLUDE
-)
+  DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
+# Install documentation
+install(FILES docs/README.md
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/docs/experimental_modules
+  RENAME determinism_modules_readme.md
+)

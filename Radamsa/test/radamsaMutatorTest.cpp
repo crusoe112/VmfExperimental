@@ -1,31 +1,21 @@
 /* =============================================================================
- * Vader Modular Fuzzer
- * Copyright (c) 2021-2023 The Charles Stark Draper Laboratory, Inc.
- * <vader@draper.com>
- *
- * Effort sponsored by the U.S. Government under Other Transaction number
- * W9124P-19-9-0001 between AMTC and the Government. The U.S. Government
- * is authorized to reproduce and distribute reprints for Governmental purposes
- * notwithstanding any copyright notation thereon.
- *
- * The views and conclusions contained herein are those of the authors and
- * should not be interpreted as necessarily representing the official policies
- * or endorsements, either expressed or implied, of the U.S. Government.
+ * Vader Modular Fuzzer (VMF)
+ * Copyright (c) 2021-2025 The Charles Stark Draper Laboratory, Inc.
+ * <vmf@draper.com>
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
+ * it under the terms of the GNU General Public License version 2 (only) as 
+ * published by the Free Software Foundation.
+ *  
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- *
+ *  
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * @license GPL-3.0-or-later <https://spdx.org/licenses/GPL-3.0-or-later>
+ *  
+ * @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
  * ===========================================================================*/
 
 // Google Test Includes
@@ -34,7 +24,7 @@
 // VMF Includes
 #include "radamsaMutatorTest.hpp"
 
-namespace vader::test::modules::radamsa
+namespace vmf::test::modules::radamsa
 {
 TEST_F(UninitializedRadamsaMutatorTest, TestDefaultConstructor)
 {
@@ -67,7 +57,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: ByteMutations_DropByte"))},
                 AlgorithmType::ByteMutations_DropByte);
@@ -79,7 +69,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: ByteMutations_FlipByte"))},
                 AlgorithmType::ByteMutations_FlipByte);
@@ -91,7 +81,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: ByteMutations_InsertByte"))},
                 AlgorithmType::ByteMutations_InsertByte);
@@ -103,7 +93,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: ByteMutations_RepeatByte"))},
                 AlgorithmType::ByteMutations_RepeatByte);
@@ -115,7 +105,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: ByteMutations_PermuteByte"))},
                 AlgorithmType::ByteMutations_PermuteByte);
@@ -127,7 +117,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: ByteMutations_IncrementByte"))},
                 AlgorithmType::ByteMutations_IncrementByte);
@@ -139,7 +129,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: ByteMutations_DecrementByte"))},
                 AlgorithmType::ByteMutations_DecrementByte);
@@ -151,7 +141,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: LineMutations_DeleteLine"))},
                 AlgorithmType::LineMutations_DeleteLine);
@@ -161,7 +151,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: LineMutations_DeleteSequentialLines"))},
                 AlgorithmType::LineMutations_DeleteSequentialLines);
@@ -171,7 +161,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: LineMutations_DuplicateLine"))},
                 AlgorithmType::LineMutations_DuplicateLine);
@@ -181,7 +171,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: LineMutations_CopyLineCloseBy"))},
                 AlgorithmType::LineMutations_CopyLineCloseBy);
@@ -191,7 +181,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: LineMutations_RepeatLine"))},
                 AlgorithmType::LineMutations_RepeatLine);
@@ -201,7 +191,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                         std::move(
                             std::string{"modules:\n"} +
                                 std::move("    - name: TestMutator\n") +
-                                std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                 std::move("TestMutator:\n") + 
                                 std::move("  algType: LineMutations_SwapLine"))},
                 AlgorithmType::LineMutations_SwapLine);
@@ -214,7 +204,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                             std::move(
                                 std::string{"modules:\n"} +
                                     std::move("    - name: TestMutator\n") +
-                                    std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                    std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                     std::move("TestMutator:\n") + 
                                     std::move("  algType: Unknown"))},
                     AlgorithmType::Unknown),
@@ -228,7 +218,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestInit)
                             std::move(
                                 std::string{"modules:\n"} +
                                     std::move("    - name: TestMutator\n") +
-                                    std::move("      className: \"vader::modules::radamsa::RadamsaMutator\"\n") +
+                                    std::move("      className: \"vmf::modules::radamsa::RadamsaMutator\"\n") +
                                     std::move("TestMutator:\n") + 
                                     std::move("  algType: Unmapped"))},
                     AlgorithmType::Unknown),
@@ -250,7 +240,7 @@ TEST_F(UninitializedRadamsaMutatorTest, TestRegisterStorageNeeds)
 
 TEST_F(UninitializedRadamsaMutatorTest, TestBuild)
 {
-    std::unique_ptr<vader::Module> module{build("TestMutator")};
+    std::unique_ptr<vmf::Module> module{build("TestMutator")};
 
     ASSERT_EQ(module->getModuleName(), "TestMutator");
     ASSERT_EQ(module->getModuleType(), MUTATOR);
@@ -477,7 +467,7 @@ TEST_F(InitializedRadamsaMutatorTest, TestCreateTestCase_ErroneousInputs)
     {
         // Erroneous Input - This subtest should trigger a runtime exception since the base entry is null.
 
-        EXPECT_THROW(createTestCase(storage_, nullptr), RuntimeException);
+        EXPECT_THROW(mutateTestCase(storage_, nullptr), RuntimeException);
     }
 
     {

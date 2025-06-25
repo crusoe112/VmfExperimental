@@ -2,7 +2,7 @@
 # Vader Modular Fuzzer (VMF)
 # Copyright (c) 2021-2025 The Charles Stark Draper Laboratory, Inc.
 # <vmf@draper.com>
-#  
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 (only) as 
 # published by the Free Software Foundation.
@@ -18,13 +18,5 @@
 # @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
 #===============================================================================
 
-add_subdirectory(vmf/src)
-
-#install sample configuration files
-install(DIRECTORY test DESTINATION
-  DESTINATION ${CMAKE_INSTALL_PREFIX}
-  PATTERN "*.cpp" EXCLUDE
-  PATTERN "*.h" EXCLUDE
-  PATTERN "README.md" EXCLUDE
-)
+add_subdirectory(modules)
 

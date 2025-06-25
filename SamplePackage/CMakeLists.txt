@@ -1,16 +1,7 @@
 #===============================================================================
 # Vader Modular Fuzzer (VMF)
-# Copyright (c) 2021-2023 The Charles Stark Draper Laboratory, Inc.
-# <vader@draper.com>
-#  
-# Effort sponsored by the U.S. Government under Other Transaction number
-# W9124P-19-9-0001 between AMTC and the Government. The U.S. Government
-# Is authorized to reproduce and distribute reprints for Governmental purposes
-# notwithstanding any copyright notation thereon.
-#  
-# The views and conclusions contained herein are those of the authors and
-# should not be interpreted as necessarily representing the official policies
-# or endorsements, either expressed or implied, of the U.S. Government.
+# Copyright (c) 2021-2025 The Charles Stark Draper Laboratory, Inc.
+# <vmf@draper.com>
 #  
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 2 (only) as 
@@ -27,28 +18,9 @@
 # @license GPL-2.0-only <https://spdx.org/licenses/GPL-2.0-only.html>
 #===============================================================================
 
-# Create SampleModule library
-add_library(SampleModule SHARED
-  src/module/MyMutator.cpp
-)
+add_subdirectory(vmf/src)
 
-# Build-time dependencies for SampleModule
-link_directories(SampleModule PRIVATE
-)
-
-# Build-time dependencies for SampleModule
-target_link_libraries(SampleModule PRIVATE
-)
-
-# Build-time dependencies for SampleModule
-target_include_directories(SampleModule PRIVATE
-  ${VMF_INSTALL}/include
-  ${VMF_INSTALL}/include/vmf
-  ${VMF_INSTALL}/include/plog
-  ${PROJECT_SOURCE_DIR}/src/module
-)
-
-# Install SampleModule library in VMF plugins directory
-install(TARGETS SampleModule
-  LIBRARY DESTINATION "${VMF_INSTALL}/plugins")
+#install sample configuration files
+install(DIRECTORY test DESTINATION
+  DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
