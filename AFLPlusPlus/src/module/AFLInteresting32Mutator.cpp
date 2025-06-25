@@ -52,13 +52,14 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
+using u32 = uint32_t;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLInteresting32Mutator);
 
-// From AFL++ macro
-const int32_t AFLInteresting32Mutator::interesting_32[] = 
+// From AFL++ macro (github.com/AFLplusplus/AFLplusplus/blob/stable/include/config.h)
+const int64_t AFLInteresting32Mutator::interesting_32[] = 
 {
     INTERESTING_8, 
     INTERESTING_16,
@@ -93,7 +94,7 @@ void AFLInteresting32Mutator::init(ConfigInterface& config)
 AFLInteresting32Mutator::AFLInteresting32Mutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -116,7 +117,7 @@ void AFLInteresting32Mutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLInteresting32Mutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLInteresting32Mutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -127,19 +128,17 @@ StorageEntry* AFLInteresting32Mutator::createTestCase(StorageModule& storage, St
         throw RuntimeException("AFLInteresting32Mutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     // Copy base entry to new entry
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
     if (size < 4) {
-        return newEntry;
+        return;
     }
 
     // Pick a random byte and replace it with an interesting value
-    int item = afl_rand_below(&rand, sizeof(AFLInteresting32Mutator::interesting_32) >> 2);
-    *(u32 *) (newBuff + afl_rand_below(&rand, size - 3)) = AFLInteresting32Mutator::interesting_32[item];
+    int item = rand->randBelow(sizeof(AFLInteresting32Mutator::interesting_32) >> 2);
+    *(u32 *) (newBuff + rand->randBelow(size - 3)) = AFLInteresting32Mutator::interesting_32[item];
 
-    return newEntry;
+    return;
 }

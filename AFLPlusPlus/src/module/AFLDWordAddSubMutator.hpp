@@ -32,17 +32,14 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
+#include "VmfRand.hpp"
 
 // external project includes.
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-extern "C" {
-    #include "LibAFL-legacy/rand.h"
-}
 #pragma GCC diagnostic pop
 
-namespace vader
+namespace vmf
 {
 /**
  * @brief This mutator adds and subtracts bounded random values to a random double in the buffer
@@ -86,11 +83,10 @@ public:
     AFLDWordAddSubMutator(std::string name);
     virtual ~AFLDWordAddSubMutator();
     virtual void registerStorageNeeds(StorageRegistry& registry);
-    virtual StorageEntry* createTestCase(StorageModule& storage, StorageEntry* baseEntry);
+    virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
     
 private:
     int testCaseKey;
-    afl_rand_t rand;
-
+    VmfRand* rand = VmfRand::getInstance();
 };
 }

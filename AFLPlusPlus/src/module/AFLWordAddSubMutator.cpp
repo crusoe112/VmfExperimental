@@ -52,7 +52,8 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
+using u16 = uint16_t;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLWordAddSubMutator);
@@ -85,7 +86,7 @@ void AFLWordAddSubMutator::init(ConfigInterface& config)
 AFLWordAddSubMutator::AFLWordAddSubMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -108,7 +109,7 @@ void AFLWordAddSubMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLWordAddSubMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLWordAddSubMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,20 +120,18 @@ StorageEntry* AFLWordAddSubMutator::createTestCase(StorageModule& storage, Stora
         throw RuntimeException("AFLWordAddSubMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     // Copy base entry to new entry
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
     if(size < 2)
     {
-        return baseEntry;
+        return;
     }
 
-    int byte = afl_rand_below(&rand, size - 1);
-    *(u16 *)(newBuff + byte) -= 1 + (u16)afl_rand_below(&rand, ARITH_MAX);
-    *(u16 *)(newBuff + byte) += 1 + (u16)afl_rand_below(&rand, ARITH_MAX);
+    int byte = rand->randBelow(size - 1);
+    *(u16 *)(newBuff + byte) -= 1 + (u16)rand->randBelow(ARITH_MAX);
+    *(u16 *)(newBuff + byte) += 1 + (u16)rand->randBelow(ARITH_MAX);
 
-    return newEntry;
+    return;
 }

@@ -52,7 +52,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLFlip4BitMutator);
@@ -85,7 +85,7 @@ void AFLFlip4BitMutator::init(ConfigInterface& config)
 AFLFlip4BitMutator::AFLFlip4BitMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -108,7 +108,7 @@ void AFLFlip4BitMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLFlip4BitMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLFlip4BitMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,15 +119,13 @@ StorageEntry* AFLFlip4BitMutator::createTestCase(StorageModule& storage, Storage
         throw RuntimeException("AFLFlip4BitMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
-    int bit = afl_rand_below(&rand, (size << 3) - 1) + 1;
+    int bit = rand->randBelow((size << 3) - 1) + 1;
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
     if ((size << 3) - bit < 4) {
         //Return without mutating -- the buffer is too small
-        return newEntry;    //This is the libAFL implementation
+        return;    //This is the libAFL implementation
     }
 
     newBuff[bit >> 3] ^= (1 << ((bit - 1) % 8));
@@ -139,5 +137,5 @@ StorageEntry* AFLFlip4BitMutator::createTestCase(StorageModule& storage, Storage
     newBuff[bit >> 3] ^= (1 << ((bit - 1) % 8));
 
 
-    return newEntry;
+    return;
 }

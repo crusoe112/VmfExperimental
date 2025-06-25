@@ -53,7 +53,8 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
+using u32 = uint32_t;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLOverwriteCopyMutator);
@@ -86,7 +87,7 @@ void AFLOverwriteCopyMutator::init(ConfigInterface& config)
 AFLOverwriteCopyMutator::AFLOverwriteCopyMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -109,7 +110,7 @@ void AFLOverwriteCopyMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLOverwriteCopyMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLOverwriteCopyMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,23 +120,21 @@ StorageEntry* AFLOverwriteCopyMutator::createTestCase(StorageModule& storage, St
     {
         throw RuntimeException("AFLOverwriteCopyMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
-
-    StorageEntry* newEntry = storage.createNewEntry();
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     // Copy base entry to new entry
     memcpy((void*)newBuff, (void*)buffer, size);
 
     if (size < 2) {
-        return newEntry;
+        return;
     }
 
-    u32 copy_len = AFLDeleteMutator::choose_block_len(&rand, size - 1);
-    u32 copy_from = afl_rand_below(&rand, size - copy_len + 1);
-    u32 copy_to = afl_rand_below(&rand, size - copy_len + 1);
+    u32 copy_len = AFLDeleteMutator::choose_block_len(rand, size - 1);
+    u32 copy_from = rand->randBelow((unsigned long)(size - copy_len + 1));
+    u32 copy_to = rand->randBelow((unsigned long)(size - copy_len + 1));
 
     if (copy_from != copy_to) {
         memmove(newBuff + copy_to, newBuff + copy_from, copy_len);
     }
 
-    return newEntry;
+    return;
 }

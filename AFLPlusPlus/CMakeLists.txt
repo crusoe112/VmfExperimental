@@ -55,19 +55,20 @@ link_directories(AFLPlusPlus PRIVATE
 
 # Build-time dependencies for AFLPlusPlus
 target_link_libraries(AFLPlusPlus PRIVATE
-  ${VMF_INSTALL}/bin/vader
-  ${VMF_INSTALL}/../../submodules/LibAFL-legacy
+  # ${CMAKE_INSTALL_PREFIX}/bin/vader
+  vmf_framework
+  # ${CMAKE_INSTALL_PREFIX}/../../submodules/LibAFL-legacy
 )
 
 # Build-time dependencies for AFLPlusPlus
 target_include_directories(AFLPlusPlus PRIVATE
-  ${VMF_INSTALL}/include
-  ${VMF_INSTALL}/include/vmf
-  ${VMF_INSTALL}/include/plog
+  ${CMAKE_INSTALL_PREFIX}/include
+  ${CMAKE_INSTALL_PREFIX}/include/vmf
+  ${CMAKE_INSTALL_PREFIX}/include/plog
   ${PROJECT_SOURCE_DIR}/src/module
 )
 
 # Install AFLPlusPlus library in VMF plugins directory
 install(TARGETS AFLPlusPlus
-  LIBRARY DESTINATION "${VMF_INSTALL}/plugins")
+  LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/plugins")
 

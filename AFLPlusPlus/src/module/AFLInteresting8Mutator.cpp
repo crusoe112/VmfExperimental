@@ -52,7 +52,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLInteresting8Mutator);
@@ -88,7 +88,7 @@ void AFLInteresting8Mutator::init(ConfigInterface& config)
 AFLInteresting8Mutator::AFLInteresting8Mutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -111,7 +111,7 @@ void AFLInteresting8Mutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLInteresting8Mutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLInteresting8Mutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -122,15 +122,13 @@ StorageEntry* AFLInteresting8Mutator::createTestCase(StorageModule& storage, Sto
         throw RuntimeException("AFLInteresting8Mutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     // Copy base entry to new entry
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
     // Pick a random byte and replace it with an interesting value
-    int item = afl_rand_below(&rand, sizeof(AFLInteresting8Mutator::interesting_8));
-    newBuff[afl_rand_below(&rand, size)] = AFLInteresting8Mutator::interesting_8[item];
+    int item = rand->randBelow(sizeof(AFLInteresting8Mutator::interesting_8));
+    newBuff[rand->randBelow(size)] = AFLInteresting8Mutator::interesting_8[item];
 
-    return newEntry;
+    return;
 }

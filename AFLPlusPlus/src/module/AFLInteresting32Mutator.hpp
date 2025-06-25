@@ -32,17 +32,15 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
+#include "VmfRand.hpp"
+#include "config.h"
 
 // external project includes.
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-extern "C" {
-    #include "LibAFL-legacy/rand.h"
-}
 #pragma GCC diagnostic pop
 
-namespace vader
+namespace vmf
 {
 /**
  * @brief This mutator sets a dword to an interesting value.
@@ -83,12 +81,11 @@ public:
     AFLInteresting32Mutator(std::string name);
     virtual ~AFLInteresting32Mutator();
     virtual void registerStorageNeeds(StorageRegistry& registry);
-    virtual StorageEntry* createTestCase(StorageModule& storage, StorageEntry* baseEntry);
+    virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
     
 private:
     int testCaseKey;
-    afl_rand_t rand;
-    static const int32_t interesting_32[];
-
+    VmfRand* rand = VmfRand::getInstance();
+    static const int64_t interesting_32[];
 };
 }

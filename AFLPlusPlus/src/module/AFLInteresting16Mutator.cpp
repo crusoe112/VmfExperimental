@@ -52,7 +52,8 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
+using u16 = uint16_t;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLInteresting16Mutator);
@@ -88,7 +89,7 @@ void AFLInteresting16Mutator::init(ConfigInterface& config)
 AFLInteresting16Mutator::AFLInteresting16Mutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -111,7 +112,7 @@ void AFLInteresting16Mutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLInteresting16Mutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLInteresting16Mutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -122,19 +123,17 @@ StorageEntry* AFLInteresting16Mutator::createTestCase(StorageModule& storage, St
         throw RuntimeException("AFLInteresting16Mutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     // Copy base entry to new entry
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
     if (size < 2) {
-        return newEntry;
+        return;
     }
 
     // Pick a random byte and replace it with an interesting value
-    int item = afl_rand_below(&rand, sizeof(AFLInteresting16Mutator::interesting_16) >> 1);
-    *(u16 *)(newBuff + afl_rand_below(&rand, size - 1)) = AFLInteresting16Mutator::interesting_16[item];
+    int item = rand->randBelow(sizeof(AFLInteresting16Mutator::interesting_16) >> 1);
+    *(u16 *)(newBuff + rand->randBelow(size - 1)) = AFLInteresting16Mutator::interesting_16[item];
 
-    return newEntry;
+    return;
 }

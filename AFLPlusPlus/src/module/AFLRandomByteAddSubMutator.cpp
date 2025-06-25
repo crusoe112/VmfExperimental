@@ -52,7 +52,8 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
+using u8 = uint8_t;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLRandomByteAddSubMutator);
@@ -85,7 +86,7 @@ void AFLRandomByteAddSubMutator::init(ConfigInterface& config)
 AFLRandomByteAddSubMutator::AFLRandomByteAddSubMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -108,7 +109,7 @@ void AFLRandomByteAddSubMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLRandomByteAddSubMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLRandomByteAddSubMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,13 +120,11 @@ StorageEntry* AFLRandomByteAddSubMutator::createTestCase(StorageModule& storage,
         throw RuntimeException("AFLRandomByteAddSubMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
-    int byte = afl_rand_below(&rand, size);
+    int byte = rand->randBelow(size);
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
-    newBuff[byte] -= 1 + (u8)afl_rand_below(&rand, ARITH_MAX);
-    newBuff[byte] += 1 + (u8)afl_rand_below(&rand, ARITH_MAX);
+    newBuff[byte] -= 1 + (u8)rand->randBelow(ARITH_MAX);
+    newBuff[byte] += 1 + (u8)rand->randBelow(ARITH_MAX);
 
-    return newEntry;
+    return;
 }

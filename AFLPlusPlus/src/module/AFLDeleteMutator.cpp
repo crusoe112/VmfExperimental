@@ -52,7 +52,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLDeleteMutator);
@@ -85,7 +85,7 @@ void AFLDeleteMutator::init(ConfigInterface& config)
 AFLDeleteMutator::AFLDeleteMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -108,7 +108,7 @@ void AFLDeleteMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLDeleteMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLDeleteMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,16 +119,14 @@ StorageEntry* AFLDeleteMutator::createTestCase(StorageModule& storage, StorageEn
         throw RuntimeException("AFLDeleteMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     if (size < 2) {
         char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
         memcpy((void*)newBuff, (void*)buffer, size);
-        return newEntry;  //This is the libAFL implementation
+        return;  //This is the libAFL implementation
     }
 
-    int del_len = choose_block_len(&rand, size - 1);
-    int del_from = afl_rand_below(&rand, size - del_len + 1);
+    int del_len = choose_block_len(rand, size - 1);
+    int del_from = rand->randBelow(size - del_len + 1);
 
     int newSize = size - del_len;
 
@@ -136,7 +134,7 @@ StorageEntry* AFLDeleteMutator::createTestCase(StorageModule& storage, StorageEn
     memcpy((void*)newBuff, (void*)buffer, del_from);
     memcpy(newBuff + del_from, buffer + del_from + del_len, newSize - del_from);
 
-    return newEntry;
+    return;
 }
 
 /**
@@ -149,10 +147,10 @@ StorageEntry* AFLDeleteMutator::createTestCase(StorageModule& storage, StorageEn
  * @param limit 
  * @return size_t 
  */
-size_t AFLDeleteMutator::choose_block_len(afl_rand_t *rand, size_t limit) {
+size_t AFLDeleteMutator::choose_block_len(VmfRand* rand, size_t limit) {
 
     size_t min_value, max_value;
-    switch (afl_rand_below(rand, 3)) {
+    switch (rand->randBelow(3)) {
 
     case 0:
         min_value = 1;
@@ -163,7 +161,7 @@ size_t AFLDeleteMutator::choose_block_len(afl_rand_t *rand, size_t limit) {
         max_value = HAVOC_BLK_MEDIUM;
         break;
     default:
-        if (afl_rand_below(rand, 10)) {
+        if (rand->randBelow(10)) {
 
             min_value = HAVOC_BLK_MEDIUM;
             max_value = HAVOC_BLK_LARGE;
@@ -181,6 +179,5 @@ size_t AFLDeleteMutator::choose_block_len(afl_rand_t *rand, size_t limit) {
         min_value = 1;
     }
 
-    return afl_rand_between(rand, min_value, MIN(max_value, limit));
-
+    return rand->randBetween(min_value, std::min(max_value, limit));
 }

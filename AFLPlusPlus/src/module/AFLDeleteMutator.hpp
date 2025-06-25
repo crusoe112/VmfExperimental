@@ -32,17 +32,15 @@
 #include "MutatorModule.hpp"
 #include "StorageEntry.hpp"
 #include "RuntimeException.hpp"
+#include "VmfRand.hpp"
+#include "config.h"
 
 // external project includes.
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-extern "C" {
-    #include "LibAFL-legacy/rand.h"
-}
 #pragma GCC diagnostic pop
 
-namespace vader
+namespace vmf
 {
 /**
  * @brief This mutator deletes a random chunk from the test case buffer
@@ -86,13 +84,12 @@ public:
     AFLDeleteMutator(std::string name);
     virtual ~AFLDeleteMutator();
     virtual void registerStorageNeeds(StorageRegistry& registry);
-    virtual StorageEntry* createTestCase(StorageModule& storage, StorageEntry* baseEntry);
+    virtual void mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey);
 
-    static size_t choose_block_len(afl_rand_t *rand, size_t limit);
+    static size_t choose_block_len(VmfRand* rand, size_t limit);
     
 private:
     int testCaseKey;
-    afl_rand_t rand;
-
+    VmfRand* rand = VmfRand::getInstance();
 };
 }

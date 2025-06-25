@@ -52,7 +52,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLFlipBitMutator);
@@ -85,7 +85,7 @@ void AFLFlipBitMutator::init(ConfigInterface& config)
 AFLFlipBitMutator::AFLFlipBitMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -108,7 +108,7 @@ void AFLFlipBitMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLFlipBitMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLFlipBitMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,13 +119,11 @@ StorageEntry* AFLFlipBitMutator::createTestCase(StorageModule& storage, StorageE
         throw RuntimeException("AFLFlipBitMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
-    int bit = afl_rand_below(&rand, size * 8 - 1) + 1;
+    int bit = rand->randBelow(size * 8 - 1) + 1;
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
     newBuff[(bit >> 3)] ^= (1 << ((bit - 1) % 8));
 
-    return newEntry;
+    return;
 }

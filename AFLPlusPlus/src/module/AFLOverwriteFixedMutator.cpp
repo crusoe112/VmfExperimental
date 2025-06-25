@@ -53,7 +53,8 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
+using u32 = uint32_t;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLOverwriteFixedMutator);
@@ -86,7 +87,7 @@ void AFLOverwriteFixedMutator::init(ConfigInterface& config)
 AFLOverwriteFixedMutator::AFLOverwriteFixedMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -109,7 +110,7 @@ void AFLOverwriteFixedMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLOverwriteFixedMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLOverwriteFixedMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,28 +120,26 @@ StorageEntry* AFLOverwriteFixedMutator::createTestCase(StorageModule& storage, S
     {
         throw RuntimeException("AFLOverwriteFixedMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
-
-    StorageEntry* newEntry = storage.createNewEntry();
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     // Copy base entry to new entry
     memcpy((void*)newBuff, (void*)buffer, size);
 
     if (size < 2) {
-        return newEntry;
+        return;
     }
 
     // Choose a random block length
-    u32 copy_len = AFLDeleteMutator::choose_block_len(&rand, size - 1);
+    u32 copy_len = AFLDeleteMutator::choose_block_len(rand, size - 1);
     // Choose a random location to copy the block to
-    u32 copy_to = afl_rand_below(&rand, size - copy_len + 1);
+    u32 copy_to = rand->randBelow((unsigned long)(size - copy_len + 1));
     // Choose a random strategy with 50% chance of each
-    u32 strat = afl_rand_below(&rand, 2);
+    u32 strat = rand->randBelow(2);
     // Copy from the location before the copy_to location or 0 if copy_to is 0
     u32 copy_from = copy_to ? copy_to - 1 : 0;
     // Either repeat the byte at the copy_from location or choose a random byte
-    u32 item = strat ? afl_rand_below(&rand, 256) : buffer[copy_from];
+    u32 item = strat ? rand->randBelow(256) : buffer[copy_from];
 
     memset(newBuff + copy_to, item, copy_len);
 
-    return newEntry;
+    return;
 }

@@ -52,7 +52,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLFlip4ByteMutator);
@@ -85,7 +85,7 @@ void AFLFlip4ByteMutator::init(ConfigInterface& config)
 AFLFlip4ByteMutator::AFLFlip4ByteMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -108,7 +108,7 @@ void AFLFlip4ByteMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLFlip4ByteMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLFlip4ByteMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,20 +119,18 @@ StorageEntry* AFLFlip4ByteMutator::createTestCase(StorageModule& storage, Storag
         throw RuntimeException("AFLFlip4ByteMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
     if (size < 4) {
         //The buffer is too small for this mutation approach
-        return newEntry;    //This is the libAFL implementation
+        return;    //This is the libAFL implementation
     }
 
-    int byte = afl_rand_below(&rand, size - 3);
+    int byte = rand->randBelow(size - 3);
 
     if (byte == -1) {
-        return newEntry;    //This is the libAFL implementation
+        return;    //This is the libAFL implementation
     }
 
     newBuff[byte] ^= 0xff;
@@ -140,5 +138,5 @@ StorageEntry* AFLFlip4ByteMutator::createTestCase(StorageModule& storage, Storag
     newBuff[byte + 2] ^= 0xff;
     newBuff[byte + 3] ^= 0xff;
 
-    return newEntry;
+    return;
 }

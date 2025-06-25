@@ -52,7 +52,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLSpliceMutator);
@@ -85,7 +85,7 @@ void AFLSpliceMutator::init(ConfigInterface& config)
 AFLSpliceMutator::AFLSpliceMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -109,7 +109,7 @@ void AFLSpliceMutator::registerStorageNeeds(StorageRegistry& registry)
     normalTag = registry.registerTag("RAN_SUCCESSFULLY", StorageRegistry::READ_ONLY);
 }
  
-StorageEntry* AFLSpliceMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLSpliceMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -121,20 +121,18 @@ StorageEntry* AFLSpliceMutator::createTestCase(StorageModule& storage, StorageEn
         throw RuntimeException("AFLSpliceMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     // get a random second test case that will be spliced
     StorageEntry* secondEntry = nullptr;
     int randIndex = 0;
 
-    std::unique_ptr<Iterator> entries = storage.getEntriesByTag(normalTag);
+    std::unique_ptr<Iterator> entries = storage.getNewEntriesByTag(normalTag);
     int maxIndex = entries->getSize();
     // make sure that random case is not the same as the base case
     int secondID = baseID;
     int count=0;
     while((secondID == baseID)&&(count<3))
     {
-        randIndex = afl_rand_below(&rand, maxIndex);
+        randIndex = rand->randBelow(maxIndex);
         secondEntry = entries->setIndexTo(randIndex);
         secondID = secondEntry->getID();
         count++; //We need to prevent an infinite loop in case there are only a few test cases in the queue
@@ -147,7 +145,7 @@ StorageEntry* AFLSpliceMutator::createTestCase(StorageModule& storage, StorageEn
 
     //pick random splice point, from 1 to second to last byte.
     //TODO(VADER-609): Consider limiting splice range to where bytes differ. 
-    int splitAt = afl_rand_below(&rand, minSize - 1) + 1;
+    int splitAt = rand->randBelow(minSize - 1) + 1;
 
     // secondSize is the size of the new testcase: we copy splitAt bytes from the first,
     // and (secondSize - splitAt) from the second. splitAt + secondSize - splitAt = secondSize.
@@ -157,5 +155,5 @@ StorageEntry* AFLSpliceMutator::createTestCase(StorageModule& storage, StorageEn
     // copy from second test case
     memcpy((newBuff + splitAt), (secondBuffer + splitAt), (secondSize - splitAt));
 
-    return newEntry;
+    return;
 }

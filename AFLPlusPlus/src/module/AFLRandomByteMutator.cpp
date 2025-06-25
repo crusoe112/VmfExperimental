@@ -52,7 +52,8 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader;
+using namespace vmf;
+using u8 = uint8_t;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLRandomByteMutator);
@@ -85,7 +86,7 @@ void AFLRandomByteMutator::init(ConfigInterface& config)
 AFLRandomByteMutator::AFLRandomByteMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -108,7 +109,7 @@ void AFLRandomByteMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLRandomByteMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLRandomByteMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -119,13 +120,11 @@ StorageEntry* AFLRandomByteMutator::createTestCase(StorageModule& storage, Stora
         throw RuntimeException("AFLRandomByteMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     char* newBuff = newEntry->allocateBuffer(testCaseKey, size);
     memcpy((void*)newBuff, (void*)buffer, size);
 
-    int idx = afl_rand_below(&rand, size);
-    newBuff[idx] ^= 1 + (u8)afl_rand_below(&rand, 255);
+    int idx = rand->randBelow(size);
+    newBuff[idx] ^= 1 + (u8)rand->randBelow(255);
 
-    return newEntry;
+    return;
 }

@@ -53,7 +53,7 @@
 #include <random>
 #include <algorithm>
 
-using namespace vader::aflplusplus::mutations::AFLCloneMutator;
+using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(AFLCloneMutator);
@@ -86,7 +86,7 @@ void AFLCloneMutator::init(ConfigInterface& config)
 AFLCloneMutator::AFLCloneMutator(std::string name) :
     MutatorModule(name)
 {
-    afl_rand_init(&rand);
+    // rand->randInit();
 }
 
 /**
@@ -109,7 +109,7 @@ void AFLCloneMutator::registerStorageNeeds(StorageRegistry& registry)
     testCaseKey = registry.registerKey("TEST_CASE", StorageRegistry::BUFFER, StorageRegistry::READ_WRITE);
 }
  
-StorageEntry* AFLCloneMutator::createTestCase(StorageModule& storage, StorageEntry* baseEntry)
+void AFLCloneMutator::mutateTestCase(StorageModule& storage, StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
 {
 
     int size = baseEntry->getBufferSize(testCaseKey);
@@ -120,19 +120,17 @@ StorageEntry* AFLCloneMutator::createTestCase(StorageModule& storage, StorageEnt
         throw RuntimeException("AFLCloneMutator mutate called with zero sized buffer", RuntimeException::USAGE_ERROR);
     }
 
-    StorageEntry* newEntry = storage.createNewEntry();
-
     //The variable actually_clone determines which strategy is used.
-    int actually_clone = afl_rand_below(&rand, 4);
+    int actually_clone = rand->randBelow(4);
     int clone_from;
     int clone_len;
-    int clone_to = afl_rand_below(&rand, size);
+    int clone_to = rand->randBelow(size);
 
     if (actually_clone) {
         //Clone a small block of the original data
 
-        clone_len = AFLDeleteMutator::choose_block_len(&rand, size);
-        clone_from = afl_rand_below(&rand, size - clone_len + 1);
+        clone_len = AFLDeleteMutator::choose_block_len(rand, size);
+        clone_from = rand->randBelow(size - clone_len + 1);
 
         int newSize = clone_len + size;
         char* newBuff = newEntry->allocateBuffer(testCaseKey, newSize);
@@ -149,8 +147,8 @@ StorageEntry* AFLCloneMutator::createTestCase(StorageModule& storage, StorageEnt
     } else {
         //Clone a large block of the original value
 
-        clone_len = AFLDeleteMutator::choose_block_len(&rand, HAVOC_BLK_XL); //This constant is 32768
-        int randomByte = afl_rand_below(&rand, 255);
+        clone_len = AFLDeleteMutator::choose_block_len(rand, HAVOC_BLK_XL); //This constant is 32768
+        int randomByte = rand->randBelow(255);
 
         int newSize = clone_len + size;
         char* newBuff = newEntry->allocateBuffer(testCaseKey, newSize);
@@ -168,5 +166,5 @@ StorageEntry* AFLCloneMutator::createTestCase(StorageModule& storage, StorageEnt
         memcpy(newBuff + clone_to + clone_len, buffer + clone_to, size - clone_to);
     }
 
-    return newEntry;
+    return;
 }
