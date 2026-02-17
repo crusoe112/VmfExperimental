@@ -99,21 +99,33 @@ void RadamsaDuplicateNodeMutator::mutateTestCase(StorageModule& storage, Storage
     const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
     char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
 
+    // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
-        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 4", RuntimeException::USAGE_ERROR};
+    {
+        return;
+    }
 
+    // Check if minimum seed index is within valid range
     if (minimumSeedIndex > originalSize - 1u)
-        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+    {
+        return;
+    }
 
+    // Check if buffer pointer is valid (not null)
     if (originalBuffer == nullptr)
-        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+    {
+        return;
+    }
 
     const std::string treeStr(originalBuffer, originalSize);
     Tree tr(treeStr);
 
     size_t numNodes = tr.countNodes(tr.root);
+    // Check if tree has minimum required number of nodes
     if (numNodes < minimumNodes)
-        throw RuntimeException{"The number of nodes must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+    {
+        return;
+    }
 
     const size_t lower{1u};
     const size_t upper{numNodes - 2};

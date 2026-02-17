@@ -98,14 +98,22 @@ void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, Storag
     const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
     char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
 
-    if (originalSize < minimumSize) {
-        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+    // Check if buffer size meets minimum requirement
+    if (originalSize < minimumSize)
+    {
+        return;
     }
-    if (minimumSeedIndex > originalSize - 1u) {
-        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    // Check if minimum seed index is within valid range
+    if (minimumSeedIndex > originalSize - 1u)
+    {
+        return;
     }
-    if (originalBuffer == nullptr) {
-        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    // Check if buffer pointer is valid (not null)
+    if (originalBuffer == nullptr)
+    {
+        return;
     }
 
     std::vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
@@ -118,8 +126,10 @@ void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, Storag
     const size_t max_attempts = data.size();
     do {
         attempts++;
-        if (attempts > max_attempts) {
-            throw RuntimeException{"Unable to locate a valid ASCII byte", RuntimeException::USAGE_ERROR};
+        // Check if unable to find valid ASCII byte after maximum attempts
+        if (attempts > max_attempts)
+        {
+            return;
         }
 
         index = this->rand->randBetween(lower, upper);

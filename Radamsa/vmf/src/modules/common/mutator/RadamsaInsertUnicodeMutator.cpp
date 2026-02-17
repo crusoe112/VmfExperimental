@@ -136,14 +136,22 @@ void RadamsaInsertUnicodeMutator::mutateTestCase(StorageModule& storage, Storage
     const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
     char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
 
-    if (originalSize < minimumSize) {
-        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 0", RuntimeException::USAGE_ERROR};
+    // Check if buffer size meets minimum requirement
+    if (originalSize < minimumSize)
+    {
+        return;
     }
-    if (minimumSeedIndex > originalSize - 1u) {
-        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+
+    // Check if minimum seed index is within valid range
+    if (originalSize > 0 && minimumSeedIndex > originalSize - 1u)
+    {
+        return;
     }
-    if (originalBuffer == nullptr) {
-        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    // Check if buffer pointer is valid (not null)
+    if (originalBuffer == nullptr)
+    {
+        return;
     }
 
     std::vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
