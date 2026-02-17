@@ -1,18 +1,6 @@
-FROM kalilinux/kali-last-release AS deps
-
-# RUN  apt-get update \
-#      && DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends --fix-missing \
-#        ca-certificates \
-#        curl \
-#        gdb \
-#        git \
-#        gnupg \
-#        lsb-release \
-#        zip
-
-RUN apt-get update
-
+FROM kalilinux/kali-last-release AS aflpp
 # Install AFL++ dependencies
+RUN apt-get update
 RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends --fix-missing \
     build-essential \
     python3-dev \
@@ -42,36 +30,33 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     gcc-$(gcc --version|head -n1|sed 's/\..*//'|sed 's/.* //')-plugin-dev \
     libstdc++-$(gcc --version|head -n1|sed 's/\..*//'|sed 's/.* //')-dev
 
-# # Install VMF dependencies
-# RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends --fix-missing \
-#     libcurl4-openssl-dev
-
-FROM deps AS aflpp
-
-# Clone and build AFL++
+# Clone AFL++
 RUN set -ex \
     && cd /usr/local/src \
     && git clone --depth 1 https://github.com/AFLplusplus/AFLplusplus.git \
-    && cd AFLplusplus \
+    && set +ex
+
+# Build AFL++
+RUN set -ex \
+    && cd /usr/local/src/AFLplusplus \
     && make all \
     && make install \
-    && set +ex
+    && set +ex 
     
-# FROM aflpp AS vmf
+FROM aflpp AS vmf
 # ENV  LLVM_CONFIG=llvm-config-16
-# # Clone, build, install VMF
-# RUN set -ex \
-#     && cd /usr/local/src \
-#     && git clone https://github.com/draperlaboratory/vadermodularfuzzer.git VaderModularFuzzer\
-#     && cd VaderModularFuzzer \
-#     && mkdir -p build \
-#     && cd build \
-#     && cmake .. \
-#     && make -j \
-#     && make install \
-#     && set +ex
+# Install VMF dependencies
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends --fix-missing \
+    libcurl4-openssl-dev \
+    curl \
+    libclang-rt-$(clang --version | head -n1 | sed 's/.*clang version //' | sed 's/\..*//')-dev
 
 # FROM vmf AS vmfexp
+# Clone VMF
+RUN set -ex \
+    && cd /usr/local/src \
+    && git clone https://github.com/draperlaboratory/vadermodularfuzzer.git VaderModularFuzzer\
+    && set +ex
 
 # # Copy VmfExperimental
 # COPY . /usr/local/src/VmfExperimental
@@ -83,6 +68,20 @@ RUN set -ex \
 #     && make -j \
 #     && make install \
 #     && set +ex
+# Build VMF (with patches for GCC 15+ compatibility)
+RUN set -ex \
+    && cd /usr/local/src/VaderModularFuzzer \
+    && mkdir -p build \
+    && cd build \
+    && cmake .. \
+    && sed -i '/#include <cmath>/a #include <cstdint>' build_artifacts/deps/json11/json11-1.0.0/json11.cpp \
+    && sed -i '/#include "yaml-cpp\/null.h"/a #include <cstdint>' build_artifacts/deps/yaml-cpp/yaml-cpp-0.8.0/src/emitterutils.cpp \
+    && sed -i '/#include "ControllerModulePattern.hpp"/a #include <cstdint>' ../vmf/src/modules/common/controller/BalancedController.hpp \
+    && cd .. \
+    && cd build \
+    && make -j \
+    && make install \
+    && set +ex
 
 # # Create experimental config file
 # RUN set -ex \
