@@ -104,7 +104,6 @@ void RadamsaSwapLineMutator::mutateTestCase(StorageModule& storage, StorageEntry
     {
         originalBuffer = baseEntry->getBufferPointer(testCaseKey);
         originalSize = baseEntry->getBufferSize(testCaseKey);
-
     }
     catch(const RuntimeException e)
     {
@@ -121,12 +120,14 @@ void RadamsaSwapLineMutator::mutateTestCase(StorageModule& storage, StorageEntry
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
     // Check if character index is within valid range
     if (characterIndex > originalSize - 1u)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
@@ -138,6 +139,7 @@ void RadamsaSwapLineMutator::mutateTestCase(StorageModule& storage, StorageEntry
 
     // Check if buffer has minimum required number of lines
     if (numberOfLinesAfterIndex < 2) {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 

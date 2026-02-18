@@ -119,12 +119,14 @@ void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, Storag
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
     // Check if minimum seed index is within valid range
     if (minimumSeedIndex > originalSize - 1u)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
@@ -141,6 +143,7 @@ void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, Storag
         // Check if unable to find valid ASCII byte after maximum attempts
         if (attempts > max_attempts)
         {
+            CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
             return;
         }
 

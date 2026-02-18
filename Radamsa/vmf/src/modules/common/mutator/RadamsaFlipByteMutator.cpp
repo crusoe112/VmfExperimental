@@ -119,12 +119,14 @@ void RadamsaFlipByteMutator::mutateTestCase(StorageModule& storage, StorageEntry
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
     // Check if minimum seed index is within valid range
     if (minimumSeedIndex > originalSize - 1u)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 

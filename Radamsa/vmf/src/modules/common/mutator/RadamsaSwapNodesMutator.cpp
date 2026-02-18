@@ -120,12 +120,14 @@ void RadamsaSwapNodesMutator::mutateTestCase(StorageModule& storage, StorageEntr
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
     // Check if minimum seed index is within valid range
     if (minimumSeedIndex > originalSize - 1u)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
@@ -136,6 +138,7 @@ void RadamsaSwapNodesMutator::mutateTestCase(StorageModule& storage, StorageEntr
     // Check if tree has minimum required number of nodes
     if (numNodes < minimumNodes)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 

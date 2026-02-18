@@ -119,12 +119,14 @@ void RadamsaDeleteLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 
     // Check if character index is within valid range
     if (characterIndex > originalSize - 1u)
     {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
     }
 

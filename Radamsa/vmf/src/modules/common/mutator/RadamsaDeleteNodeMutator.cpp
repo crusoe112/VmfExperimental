@@ -103,7 +103,6 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
     {
         originalBuffer = baseEntry->getBufferPointer(testCaseKey);
         originalSize = baseEntry->getBufferSize(testCaseKey);
-
     }
     catch(const RuntimeException e)
     {
@@ -113,15 +112,23 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
 
     // Check if buffer pointer is valid (not null)
     if (originalBuffer == nullptr)
+    {
         return;
+    }
 
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
+    }
 
     // Check if minimum seed index is within valid range
     if (minimumSeedIndex > originalSize - 1u)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;
+    }
 
     const std::string treeStr(originalBuffer, originalSize);
     Tree tr(treeStr);
