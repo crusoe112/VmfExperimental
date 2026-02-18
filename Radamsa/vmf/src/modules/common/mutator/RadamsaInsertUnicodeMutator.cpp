@@ -133,8 +133,26 @@ void RadamsaInsertUnicodeMutator::mutateTestCase(StorageModule& storage, Storage
 
     const size_t minimumSize{0u};
     const size_t minimumSeedIndex{0u};
-    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
-    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize;
+    char* originalBuffer;
+
+    // Try to get buffer size and pointer, return early if buffer is not allocated
+    try
+    {
+        originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+        originalSize = baseEntry->getBufferSize(testCaseKey);
+    }
+    catch(const RuntimeException e)
+    {
+        // Buffer not allocated
+        return;
+    }
+
+    // Check if buffer pointer is valid (not null)
+    if (originalBuffer == nullptr)
+    {
+        return;
+    }
 
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
@@ -144,12 +162,6 @@ void RadamsaInsertUnicodeMutator::mutateTestCase(StorageModule& storage, Storage
 
     // Check if minimum seed index is within valid range
     if (originalSize > 0 && minimumSeedIndex > originalSize - 1u)
-    {
-        return;
-    }
-
-    // Check if buffer pointer is valid (not null)
-    if (originalBuffer == nullptr)
     {
         return;
     }

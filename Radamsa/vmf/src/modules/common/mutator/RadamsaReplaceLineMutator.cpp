@@ -97,14 +97,26 @@ void RadamsaReplaceLineMutator::mutateTestCase(StorageModule& storage, StorageEn
     const size_t minimumLines{2};
     const size_t minimumSeedIndex{0u};
     const size_t characterIndex{0u};
-    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
-    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize;
+    char* originalBuffer;
 
-    const size_t numLines{
-                    GetNumberOfLinesAfterIndex(
-                                        originalBuffer,
-                                        originalSize,
-                                        characterIndex)};
+    // Try to get buffer size and pointer, return early if buffer is not allocated
+    try
+    {
+        originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+        originalSize = baseEntry->getBufferSize(testCaseKey);
+    }
+    catch(const RuntimeException e)
+    {
+        // Buffer not allocated
+        return;
+    }
+
+    // Check if buffer pointer is valid (not null)
+    if (originalBuffer == nullptr)
+    {
+        return;
+    }
 
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
@@ -118,11 +130,11 @@ void RadamsaReplaceLineMutator::mutateTestCase(StorageModule& storage, StorageEn
         return;
     }
 
-    // Check if buffer pointer is valid (not null)
-    if (originalBuffer == nullptr)
-    {
-        return;
-    }
+    const size_t numLines{
+                    GetNumberOfLinesAfterIndex(
+                                        originalBuffer,
+                                        originalSize,
+                                        characterIndex)};
 
     // Check if buffer has minimum required number of lines
     if (numLines < minimumLines) {

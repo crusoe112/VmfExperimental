@@ -96,8 +96,26 @@ void RadamsaCopyLineCloseByMutator::mutateTestCase(StorageModule& storage, Stora
     constexpr size_t minimumSize{1u};
     const size_t minimumSeedIndex{0u};
     const size_t characterIndex{0u};
-    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
-    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize;
+    char* originalBuffer;
+
+    // Try to get buffer size and pointer, return early if buffer is not allocated
+    try
+    {
+        originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+        originalSize = baseEntry->getBufferSize(testCaseKey);
+    }
+    catch(const RuntimeException e)
+    {
+        // Buffer not allocated
+        return;
+    }
+
+    // Check if buffer pointer is valid (not null)
+    if (originalBuffer == nullptr)
+    {
+        return;
+    }
 
     // Check if buffer size meets minimum requirement
     if (originalSize < minimumSize)
@@ -107,12 +125,6 @@ void RadamsaCopyLineCloseByMutator::mutateTestCase(StorageModule& storage, Stora
 
     // Check if character index is within valid range
     if (characterIndex > originalSize - 1u)
-    {
-        return;
-    }
-
-    // Check if buffer pointer is valid (not null)
-    if (originalBuffer == nullptr)
     {
         return;
     }

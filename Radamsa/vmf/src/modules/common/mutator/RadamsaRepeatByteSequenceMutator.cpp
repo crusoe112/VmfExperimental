@@ -95,18 +95,18 @@ void RadamsaRepeatByteSequenceMutator::mutateTestCase(StorageModule& storage, St
 
     constexpr size_t minimumSize{2u};
     const size_t minimumSeedIndex{0u};
-    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
-    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize;
+    char* originalBuffer;
 
-    // Check if buffer size meets minimum requirement
-    if (originalSize < minimumSize)
+    // Try to get buffer size and pointer, return early if buffer is not allocated
+    try
     {
-        return;
+        originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+        originalSize = baseEntry->getBufferSize(testCaseKey);
     }
-
-    // Check if minimum seed index is within valid range
-    if (minimumSeedIndex > originalSize - 1u)
+    catch(const RuntimeException e)
     {
+        // Buffer not allocated
         return;
     }
 
@@ -116,7 +116,19 @@ void RadamsaRepeatByteSequenceMutator::mutateTestCase(StorageModule& storage, St
         return;
     }
 
+    // Check if buffer size meets minimum requirement
+    if (originalSize < minimumSize)
+    {
+        return;
+    }
     
+    // Check if minimum seed index is within valid range
+    if (minimumSeedIndex > originalSize - 1u)
+    {
+        return;
+    }
+
+
 
     // Select random indexes for the start and end of the sequence
     const size_t start_lower{0u};
