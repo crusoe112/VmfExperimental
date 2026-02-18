@@ -105,22 +105,25 @@ TEST_F(RadamsaPermuteLinesMutatorTest, TwoBytes)
     StorageEntry* modEntry = storage->createNewEntry();
 
     size_t buff_len = 2;
+    char* modBuff;
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
     buff[0] = 'G';
     buff[1] = 'H';
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff[1], buff[1]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaPermuteLinesMutatorTest, TwoLines)
@@ -129,6 +132,7 @@ TEST_F(RadamsaPermuteLinesMutatorTest, TwoLines)
     StorageEntry* modEntry = storage->createNewEntry();
 
     size_t buff_len = 4;
+    char* modBuff;
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
     buff[0] = 'G';
     buff[1] = '\n';
@@ -137,16 +141,20 @@ TEST_F(RadamsaPermuteLinesMutatorTest, TwoLines)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff[1], buff[1]);
+    EXPECT_EQ(modBuff[2], buff[2]);
+    EXPECT_EQ(modBuff[3], buff[3]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaPermuteLinesMutatorTest, ThreeLines)

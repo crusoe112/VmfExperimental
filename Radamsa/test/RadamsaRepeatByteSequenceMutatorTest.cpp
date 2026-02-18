@@ -111,15 +111,12 @@ TEST_F(RadamsaRepeatByteSequenceMutatorTest, BufferSizeGEOne)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    } 
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        // mutator should have returned early
+        SUCCEED();
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
 }
 
@@ -134,15 +131,12 @@ TEST_F(RadamsaRepeatByteSequenceMutatorTest, BufferSizeGETwo)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        // mutator should have returned early
+        SUCCEED();
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
 }
 

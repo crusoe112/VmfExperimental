@@ -104,22 +104,18 @@ TEST_F(RadamsaDeleteByteSequenceMutatorTest, BufferSizeGEOne)
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
 
-    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
-    /* By not allocating the buffer, we're forcing 
-    StorageEntry::getBufferSize() to return '-1'.
-    */
-
+    // By not allocating the buffer, we're forcing
+    // StorageEntry::getBufferSize() to return '-1'.
+    // The mutator should return early without throwing an exception
+    // or modifying the entry.
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    } 
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        // mutator should have returned early
+        SUCCEED();
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
 }
 
@@ -129,21 +125,23 @@ TEST_F(RadamsaDeleteByteSequenceMutatorTest, BufferSizeGETwo)
     StorageEntry* modEntry = storage->createNewEntry();
 
     size_t buff_len = 1;
+    char* modBuff;
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
     buff[0] = '4';
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaDeleteByteSequenceMutatorTest, TwoBytes)

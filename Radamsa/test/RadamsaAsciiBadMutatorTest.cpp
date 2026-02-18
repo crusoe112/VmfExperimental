@@ -122,16 +122,21 @@ TEST_F(RadamsaAsciiBadMutatorTest, FiveBytesPrintable)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff[1], buff[1]);
+    EXPECT_EQ(modBuff[2], buff[2]);
+    EXPECT_EQ(modBuff[3], buff[3]);
+    EXPECT_EQ(modBuff[4], buff[4]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaAsciiBadMutatorTest, SixBytesMixed)
@@ -152,16 +157,22 @@ TEST_F(RadamsaAsciiBadMutatorTest, SixBytesMixed)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff[1], buff[1]);
+    EXPECT_EQ(modBuff[2], buff[2]);
+    EXPECT_EQ(modBuff[3], buff[3]);
+    EXPECT_EQ(modBuff[4], buff[4]);
+    EXPECT_EQ(modBuff[5], buff[5]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaAsciiBadMutatorTest, SixBytesPrintable)

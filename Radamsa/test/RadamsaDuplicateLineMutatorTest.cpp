@@ -115,22 +115,18 @@ TEST_F(RadamsaDuplicateLineMutatorTest, BufferSizeGEOne)
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
 
-    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
-    /* By not allocating the buffer, we're forcing 
-    StorageEntry::getBufferSize() to return '-1'.
-    */
-
+    // By not allocating the buffer, we're forcing
+    // StorageEntry::getBufferSize() to return '-1'.
+    // The mutator should return early without throwing an exception
+    // or modifying the entry.
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    } 
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        // mutator should have returned early
+        SUCCEED();
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
 }
 

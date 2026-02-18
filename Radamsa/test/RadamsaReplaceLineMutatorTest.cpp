@@ -115,16 +115,17 @@ TEST_F(RadamsaReplaceLineMutatorTest, OneByte)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaReplaceLineMutatorTest, OneLine)
@@ -143,16 +144,18 @@ TEST_F(RadamsaReplaceLineMutatorTest, OneLine)
 
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff[1], buff[1]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaReplaceLineMutatorTest, TwoLines)
