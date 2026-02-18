@@ -51,23 +51,12 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends 
     curl \
     libclang-rt-$(clang --version | head -n1 | sed 's/.*clang version //' | sed 's/\..*//')-dev
 
-# FROM vmf AS vmfexp
 # Clone VMF
 RUN set -ex \
     && cd /usr/local/src \
     && git clone https://github.com/draperlaboratory/vadermodularfuzzer.git VaderModularFuzzer\
     && set +ex
 
-# # Copy VmfExperimental
-# COPY . /usr/local/src/VmfExperimental
-# RUN set -ex \
-#     && cd /usr/local/src/VmfExperimental \
-#     && mkdir build \
-#     && cd build \
-#     && cmake -DCMAKE_INSTALL_PREFIX=/usr/local/src/VaderModularFuzzer/build/vmf_install .. \
-#     && make -j \
-#     && make install \
-#     && set +ex
 # Build VMF (with patches for GCC 15+ compatibility)
 RUN set -ex \
     && cd /usr/local/src/VaderModularFuzzer \
@@ -83,12 +72,30 @@ RUN set -ex \
     && make install \
     && set +ex
 
-# # Create experimental config file
-# RUN set -ex \
-#     && cd /usr/local/src/ \
-#     && cp VmfExperimental/test/config/experimentalModules.yaml VaderModularFuzzer/build/vmf_install/test/config/experimentalModules.yaml \
-#     && set +ex
+FROM vmf AS vmfexp
 
-# # WORKDIR /usr/local/src/VmfExperimental/build
+# Install VMFExp dependencies
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends --fix-missing \
+    libyaml-cpp-dev
+
+# Copy and Build VmfExperimental
+COPY . /usr/local/src/VmfExperimental
+RUN set -ex \
+    && cd /usr/local/src/VmfExperimental \
+    && mkdir build \
+    && cd build \
+    && cmake -DCMAKE_INSTALL_PREFIX=/usr/local/src/VaderModularFuzzer/build/vmf_install .. \
+    && make -j \
+    && make install \
+    && set +ex
+
+# Create experimental config file
+RUN set -ex \
+    && cd /usr/local/src/ \
+    && cp VmfExperimental/test/config/experimentalModules.yaml VaderModularFuzzer/build/vmf_install/test/config/experimentalModules.yaml \
+    && set +ex
+
+WORKDIR /usr/local/src/VmfExperimental/build
+ENTRYPOINT [ "ctest", "--output-on-failure" ]
 # WORKDIR /usr/local/src/VaderModularFuzzer/build/vmf_install
 # ENTRYPOINT [ "./bin/vader", "-c", "test/config/experimentalModules.yaml", "-c", "test/haystackSUT/haystack_stdin.yaml" ]
