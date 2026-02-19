@@ -104,22 +104,18 @@ TEST_F(RadamsaSwapLineMutatorTest, BufferSizeGEOne)
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
 
-    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
-    /* By not allocating the buffer, we're forcing 
-    StorageEntry::getBufferSize() to return '-1'.
-    */
-
+    // By not allocating the buffer, we're forcing
+    // StorageEntry::getBufferSize() to return '-1'.
+    // The mutator should return early without throwing an exception
+    // or modifying the entry.
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    } 
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        // mutator should have returned early
+        SUCCEED();
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
 }
 
@@ -130,22 +126,28 @@ TEST_F(RadamsaSwapLineMutatorTest, OneLine)
 
     size_t buff_len = 2;
     size_t line_len = 2;
+    char* modBuff;
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
     buff[0] = '4';
     buff[1] = '\n';
 
+    // The mutator requires at least 2 lines to swap.
+    // With only one line, it should return early without throwing an exception
+    // or modifying the entry.
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    }
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        modBuff = modEntry->getBufferPointer(testCaseKey);
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
+
+    // Mutator should have returned without modifying the buffer
+    size_t modBuff_len = modEntry->getBufferSize(testCaseKey);
+    EXPECT_EQ(modBuff[0], buff[0]);
+    EXPECT_EQ(modBuff[1], buff[1]);
+    EXPECT_EQ(modBuff_len, buff_len);
 }
 
 TEST_F(RadamsaSwapLineMutatorTest, TwoLines)
@@ -234,3 +236,4 @@ TEST_F(RadamsaSwapLineMutatorTest, ThreeLines)
                 modString == "6\n5\n4\n\0"
                );
 }
+

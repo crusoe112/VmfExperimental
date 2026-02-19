@@ -96,25 +96,50 @@ void RadamsaReplaceNodeMutator::mutateTestCase(StorageModule& storage, StorageEn
     const size_t minimumSize{4u};   // minimal case consists of two single-character nodes
     const size_t minimumSeedIndex{0u};
     const size_t minimumNodes{2u};
-    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
-    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize;
+    char* originalBuffer;
 
-    if (originalSize < minimumSize) {
-        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 4", RuntimeException::USAGE_ERROR};
+    // Try to get buffer size and pointer, return early if buffer is not allocated
+    try
+    {
+        originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+        originalSize = baseEntry->getBufferSize(testCaseKey);
     }
-    if (minimumSeedIndex > originalSize - 1u) {
-        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+    catch(const RuntimeException e)
+    {
+        // Buffer not allocated
+        return;
     }
-    if (originalBuffer == nullptr) {
-        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    // Check if buffer pointer is valid (not null)
+    if (originalBuffer == nullptr)
+    {
+        return;
+    }
+
+    // Check if buffer size meets minimum requirement
+    if (originalSize < minimumSize)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+
+    // Check if minimum seed index is within valid range
+    if (minimumSeedIndex > originalSize - 1u)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
     }
 
     const std::string treeStr(originalBuffer, originalSize);
     Tree tr(treeStr);
 
     size_t numNodes = tr.countNodes(tr.root);
-    if (numNodes < minimumNodes) {
-        throw RuntimeException{"The number of nodes must be greater than or equal to 2", RuntimeException::USAGE_ERROR};
+    // Check if tree has minimum required number of nodes
+    if (numNodes < minimumNodes)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
     }
 
     const size_t lower{0u};

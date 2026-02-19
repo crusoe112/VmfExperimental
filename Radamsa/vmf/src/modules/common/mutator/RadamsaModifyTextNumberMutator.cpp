@@ -97,24 +97,49 @@ void RadamsaModifyTextNumberMutator::mutateTestCase(StorageModule& storage, Stor
     const size_t minimumSize{1u};
     const size_t minimumSeedIndex{0u};
     const size_t minimumNumbers{1u};
-    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
-    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize;
+    char* originalBuffer;
 
-    if (originalSize < minimumSize) {
-        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+    // Try to get buffer size and pointer, return early if buffer is not allocated
+    try
+    {
+        originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+        originalSize = baseEntry->getBufferSize(testCaseKey);
     }
-    if (minimumSeedIndex > originalSize - 1u) {
-        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
+    catch(const RuntimeException e)
+    {
+        // Buffer not allocated
+        return;
     }
-    if (originalBuffer == nullptr) {
-        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+
+    // Check if buffer pointer is valid (not null)
+    if (originalBuffer == nullptr)
+    {
+        return;
+    }
+
+    // Check if buffer size meets minimum requirement
+    if (originalSize < minimumSize)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+
+    // Check if minimum seed index is within valid range
+    if (minimumSeedIndex > originalSize - 1u)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
     }
 
     vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
     vector<NumInfo> dataNums = this->extractTextualNumbers(data);
 
-    if (dataNums.size() < minimumNumbers) {
-        throw RuntimeException{"The amount of ASCII numbers must be greater than or equal 1", RuntimeException::USAGE_ERROR};
+    // Check if buffer contains at least one ASCII number
+    if (dataNums.size() < minimumNumbers)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
     }
 
     NumInfo toMutate = dataNums[this->rand->randBetween(0, int(dataNums.size() - 1))];

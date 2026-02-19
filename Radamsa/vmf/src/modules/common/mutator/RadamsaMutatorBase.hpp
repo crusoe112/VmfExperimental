@@ -59,5 +59,14 @@ size_t GetRandomRepetitionLength(VmfRand* rand) noexcept
 
     return rand->randBetween(0u, randomUpperLimit) + 1u; // We add one to the return value in order to account for the case where the random upper value is zero.
 }
+
+void CopyBufferAsIs(StorageEntry* baseEntry, StorageEntry* newEntry, int testCaseKey)
+{
+    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize = baseEntry->getBufferSize(testCaseKey);
+    char* newBuffer{newEntry->allocateBuffer(testCaseKey, originalSize)};
+    memcpy(newBuffer, originalBuffer, originalSize);
+    return;
+}
 };
 }

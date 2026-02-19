@@ -96,19 +96,42 @@ void RadamsaDeleteSequentialLinesMutator::mutateTestCase(StorageModule& storage,
     constexpr size_t minimumSize{1u};
     const size_t minimumSeedIndex{0u};
     const size_t characterIndex{0u};
-    const size_t originalSize = baseEntry->getBufferSize(testCaseKey);
-    char* originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+    size_t originalSize;
+    char* originalBuffer;
 
-    if (originalSize < minimumSize)
-        throw RuntimeException{"The buffer's minimum size must be greater than or equal to 1", RuntimeException::USAGE_ERROR};
+    // Try to get buffer size and pointer, return early if buffer is not allocated
+    try
+    {
+        originalBuffer = baseEntry->getBufferPointer(testCaseKey);
+        originalSize = baseEntry->getBufferSize(testCaseKey);
+    }
+    catch(const RuntimeException e)
+    {
+        // Buffer not allocated
+        return;
+    }
 
-    if (characterIndex > originalSize - 1u)
-        throw RuntimeException{"Minimum seed index is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
-
+    // Check if buffer pointer is valid (not null)
     if (originalBuffer == nullptr)
-        throw RuntimeException{"Input buffer is null", RuntimeException::UNEXPECTED_ERROR};
+    {
+        return;
+    }
 
-    
+    // Check if buffer size meets minimum requirement
+    if (originalSize < minimumSize)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+
+    // Check if character index is within valid range
+    if (characterIndex > originalSize - 1u)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+
+
     const size_t numberOfLinesAfterIndex{
                                     GetNumberOfLinesAfterIndex(
                                                             originalBuffer,

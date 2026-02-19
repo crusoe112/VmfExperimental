@@ -104,22 +104,18 @@ TEST_F(RadamsaDeleteLineMutatorTest, BufferSizeGEOne)
     StorageEntry* baseEntry = storage->createNewEntry();
     StorageEntry* modEntry = storage->createNewEntry();
 
-    // char* buff = baseEntry->allocateBuffer(testCaseKey, 1);
-    /* By not allocating the buffer, we're forcing 
-    StorageEntry::getBufferSize() to return '-1'.
-    */
-
+    // By not allocating the buffer, we're forcing
+    // StorageEntry::getBufferSize() to return '-1'.
+    // The mutator should return early without throwing an exception
+    // or modifying the entry.
     try{
         theMutator->mutateTestCase(*storage, baseEntry, modEntry, testCaseKey);
-        ADD_FAILURE() << "No exception thrown";
-    } 
-    catch (RuntimeException e)
-    {
-        EXPECT_EQ(e.getErrorCode(), e.USAGE_ERROR);
+        // mutator should have returned early
+        SUCCEED();
     }
     catch (BaseException e)
     {
-        FAIL() << "Unexpected Exception thrown: " << e.getReason();
+        FAIL() << "Exception thrown: " << e.getReason();
     }
 }
 
@@ -151,7 +147,7 @@ TEST_F(RadamsaDeleteLineMutatorTest, OneLine)
     //                         modBuff,    modBuff + modBuff_len - 1)
     //             ) << "Modified buffer must not be equal to original buffer";
 
-    EXPECT_EQ(buff_len / line_len - 1, 
+    EXPECT_EQ((buff_len / line_len) - 1, 
               std::count(modBuff, modBuff + modBuff_len, '\n')
               ) << "Number of lines in modified buffer must be one less than those in the original buffer";
 
@@ -188,7 +184,7 @@ TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
                             modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff
-    EXPECT_EQ(buff_len / line_len - 1, 
+    EXPECT_EQ((buff_len / line_len) - 1, 
                std::count(modBuff, modBuff + buff_len, '\n'));
     // test buff len
     EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
