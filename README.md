@@ -9,7 +9,7 @@ modules along with associated data, tests, and documentation.
 | Package Name  | Description  | Last Updated  | Compatible With  | Developer Contact  |
 | ------------  | -----------  | ------------  | ---------------  | -----------------  |
 | Determinism  | These modules provide support for deterministic VMF runs and determinism validation  | 2025-03-18  | VMF v5.1.0 | Draper (vmf@draper.com) |
-| Radamsa  | Partial implementation of mutators from the [Radamsa](https://gitlab.com/akihe/radamsa) fuzzer | 2025-03-18  | VMF v5.1.0 | Draper (vmf@draper.com) |
+| Radamsa  | Implementation of mutators from the [Radamsa](https://gitlab.com/akihe/radamsa) fuzzer | 2026-02-19  | VMF v5.1.0 | Draper (vmf@draper.com) |
 | SamplePackage  | This sample shows how to write a mutator module and set up your build process to integrate with VMF | 2025-03-18  | NA  | Draper (vmf@draper.com) |
 
 ## Organization
