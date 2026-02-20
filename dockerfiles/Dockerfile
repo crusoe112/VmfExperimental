@@ -94,7 +94,7 @@ RUN set -ex \
     && cp VmfExperimental/test/config/experimentalModules.yaml VaderModularFuzzer/build/vmf_install/test/config/experimentalModules.yaml \
     && set +ex
 
-# WORKDIR /usr/local/src/VmfExperimental/build
-# ENTRYPOINT [ "ctest", "--output-on-failure" ]
-WORKDIR /usr/local/src/VaderModularFuzzer/build/vmf_install
-ENTRYPOINT [ "./bin/vader", "-c", "test/config/experimentalModules.yaml", "-c", "test/haystackSUT/haystack_stdin.yaml" ]
+WORKDIR /usr/local/src/VmfExperimental/build
+ENTRYPOINT [ "ctest", "--output-on-failure" ]
+# WORKDIR /usr/local/src/VaderModularFuzzer/build/vmf_install
+# ENTRYPOINT [ "./bin/vader", "-c", "test/config/experimentalModules.yaml", "-c", "test/haystackSUT/haystack_stdin.yaml" ]
