@@ -170,12 +170,12 @@ void RadamsaInsertUnicodeMutator::mutateTestCase(StorageModule& storage, Storage
 
     std::vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
 
-    const size_t lower{0};
-    size_t upper{data.size() - 1};
-    const size_t insert_index = this->rand->randBetween(lower, upper);
+    const unsigned long lower{0ul};
+    unsigned long upper{static_cast<unsigned long>(data.size() - 1)};
+    const size_t insert_index = static_cast<size_t>(this->rand->randBetween(lower, upper));
 
-    upper = this->funnyUnicode.size() - 1;
-    const std::vector<uint8_t> toInsert = this->funnyUnicode[this->rand->randBetween(lower, upper)];
+    upper = static_cast<unsigned long>(this->funnyUnicode.size() - 1);
+    const std::vector<uint8_t> toInsert = this->funnyUnicode[static_cast<size_t>(this->rand->randBetween(lower, upper))];
 
     data.insert(
         data.begin() + insert_index,

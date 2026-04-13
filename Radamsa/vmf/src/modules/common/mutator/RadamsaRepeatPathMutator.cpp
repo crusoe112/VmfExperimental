@@ -142,17 +142,17 @@ void RadamsaRepeatPathMutator::mutateTestCase(StorageModule& storage, StorageEnt
         return;
     }
 
-    const size_t lower{0u};
-    size_t upper{numNodes - 1};
+    const unsigned long lower{0ul};
+    unsigned long upper{static_cast<unsigned long>(numNodes - 1)};
     size_t parentIndex;
     Node* parent;
     do {
-        parentIndex = this->rand->randBetween(lower, upper);
+        parentIndex = static_cast<size_t>(this->rand->randBetween(lower, upper));
         parent =  tr.findNodeByIndex(tr.root, parentIndex);
     } while (parent->children.size() <= 0);   // find a parent that actually has children
 
-    upper = parent->children.size() - 1;
-    size_t childIndex{this->rand->randBetween(lower, upper)};
+    upper = static_cast<unsigned long>(parent->children.size() - 1);
+    size_t childIndex{static_cast<size_t>(this->rand->randBetween(lower, upper))};
     size_t numReps = this->GetRandomRepetitionLength(this->rand);
 
     tr.repeatPath(parent, childIndex, numReps);
