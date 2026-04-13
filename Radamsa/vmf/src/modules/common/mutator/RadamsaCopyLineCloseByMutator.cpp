@@ -139,17 +139,17 @@ void RadamsaCopyLineCloseByMutator::mutateTestCase(StorageModule& storage, Stora
 
     // Select random line to copy from/to.
 
-    const size_t minimumRandomLineOffset{0u};
+    const unsigned long minimumRandomLineOffset{0ul};
 
     const size_t randomLineIndexSource{
-                                rand->randBetween(
+                                static_cast<size_t>(rand->randBetween(
                                                 minimumRandomLineOffset,
-                                                numberOfLinesAfterIndex - 1u)};
+                                                static_cast<unsigned long>(numberOfLinesAfterIndex - 1u)))};
 
     const size_t randomLineIndexDestination{
-                                    rand->randBetween(
+                                    static_cast<size_t>(rand->randBetween(
                                                     minimumRandomLineOffset,
-                                                    numberOfLinesAfterIndex - 1u)};
+                                                    static_cast<unsigned long>(numberOfLinesAfterIndex - 1u)))};
 
     const Line lineDataSource{
                         GetLineData(

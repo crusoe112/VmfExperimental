@@ -132,13 +132,13 @@ void RadamsaDeleteByteSequenceMutator::mutateTestCase(StorageModule& storage, St
     }
 
     // Select random indexes for the start and end of the sequence
-    const size_t start_lower{0u};
-    const size_t start_upper{originalSize - 1u - 1u}; // additional -1 to leave at least one byte at the end
-    const size_t start_index{rand->randBetween(start_lower, start_upper)};
+    const unsigned long start_lower{0ul};
+    const unsigned long start_upper{static_cast<unsigned long>(originalSize - 1u - 1u)}; // additional -1 to leave at least one byte at the end
+    const size_t start_index{static_cast<size_t>(rand->randBetween(start_lower, start_upper))};
 
-    const size_t end_lower{start_index + 1u};
-    const size_t end_upper{originalSize - 1u};
-    const size_t end_index{rand->randBetween(end_lower, end_upper)};
+    const unsigned long end_lower{static_cast<unsigned long>(start_index + 1u)};
+    const unsigned long end_upper{static_cast<unsigned long>(originalSize - 1u)};
+    const size_t end_index{static_cast<size_t>(rand->randBetween(end_lower, end_upper))};
 
     // Calculate the size of the modified buffer
     const size_t newBufferSize{originalSize - (end_index - start_index + 1u) + 1u};  // +1 because we're appending a null-terminator

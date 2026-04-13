@@ -139,13 +139,13 @@ void RadamsaDuplicateLineMutator::mutateTestCase(StorageModule& storage, Storage
 
     // Select a random line to duplicate.
 
-    constexpr size_t minimumRandomLineIndex{0u};
-    const size_t maximumRandomLineIndex{numberOfLinesAfterIndex - 1u};
+    constexpr unsigned long minimumRandomLineIndex{0ul};
+    const unsigned long maximumRandomLineIndex{static_cast<unsigned long>(numberOfLinesAfterIndex - 1u)};
 
     const size_t randomLineIndex{
-                            rand->randBetween(
+                            static_cast<size_t>(rand->randBetween(
                                             minimumRandomLineIndex,
-                                            maximumRandomLineIndex)};
+                                            maximumRandomLineIndex))};
 
     const Line lineData{
                     GetLineData(

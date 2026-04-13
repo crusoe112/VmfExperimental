@@ -135,9 +135,9 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
 
     size_t numNodes = tr.countNodes(tr.root);
 
-    const size_t lower{0u};
-    const size_t upper{numNodes - 1};
-    size_t nodeIndexToDelete{this->rand->randBetween(lower, upper)};    // not const, because findNodeByIndex will modify it
+    const unsigned long lower{0ul};
+    const unsigned long upper{static_cast<unsigned long>(numNodes - 1)};
+    size_t nodeIndexToDelete{static_cast<size_t>(this->rand->randBetween(lower, upper))};    // not const, because findNodeByIndex will modify it
 
     Node* nodeToDelete = tr.findNodeByIndex(tr.root, nodeIndexToDelete);
     tr.deleteNode(nodeToDelete);
