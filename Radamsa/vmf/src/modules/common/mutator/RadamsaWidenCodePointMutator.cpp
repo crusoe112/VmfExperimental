@@ -132,8 +132,8 @@ void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, Storag
 
     std::vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
 
-    const size_t lower{0};
-    const size_t upper{data.size() - 1};
+    const unsigned long lower{0ul};
+    const unsigned long upper{static_cast<unsigned long>(data.size() - 1)};
     size_t index;
     uint8_t codePoint;
     size_t attempts = 0;
@@ -147,7 +147,7 @@ void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, Storag
             return;
         }
 
-        index = this->rand->randBetween(lower, upper);
+        index = static_cast<size_t>(this->rand->randBetween(lower, upper));
         codePoint = data[index];
     } while (codePoint < 32 || codePoint > 126); // ensure codePoint is printable ascii
 

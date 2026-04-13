@@ -155,8 +155,8 @@ void RadamsaInsertLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
                             numLines);
     }
 
-    const size_t original_lineIndex = this->rand->randBetween(characterIndex, numLines - 1);
-    const size_t new_lineIndex = this->rand->randBetween(characterIndex, numLines);
+    const size_t original_lineIndex = static_cast<size_t>(this->rand->randBetween(static_cast<unsigned long>(characterIndex), static_cast<unsigned long>(numLines - 1)));
+    const size_t new_lineIndex = static_cast<size_t>(this->rand->randBetween(static_cast<unsigned long>(characterIndex), static_cast<unsigned long>(numLines)));
 
     lineOrder.insert(lineOrder.begin() + new_lineIndex, original_lineIndex);
 

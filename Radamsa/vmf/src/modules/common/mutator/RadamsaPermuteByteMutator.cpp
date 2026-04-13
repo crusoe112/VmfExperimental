@@ -147,15 +147,15 @@ void RadamsaPermuteByteMutator::mutateTestCase(StorageModule& storage, StorageEn
     {
         // Select a random index and swap the two bytes.
 
-        const size_t lower{0u};
+        const unsigned long lower{0ul};
         const size_t upper{originalSize - 1u};
-        const size_t maximumRandomIndexValue{originalSize - minimumSeedIndex};
+        const unsigned long maximumRandomIndexValue{static_cast<unsigned long>(originalSize - minimumSeedIndex)};
         const size_t randomIndexToSwap{
                                     std::clamp(
-                                            rand->randBetween(
+                                            static_cast<size_t>(rand->randBetween(
                                                 lower,
-                                                maximumRandomIndexValue) + minimumSeedIndex,
-                                            lower,
+                                                maximumRandomIndexValue)) + minimumSeedIndex,
+                                            static_cast<size_t>(lower),
                                             upper
                                     )
         };

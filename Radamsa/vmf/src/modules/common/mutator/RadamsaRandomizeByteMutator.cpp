@@ -139,18 +139,18 @@ void RadamsaRandomizeByteMutator::mutateTestCase(StorageModule& storage, Storage
     memcpy(newBuffer, originalBuffer, originalSize);
 
     // Select a random byte to randomize
-    const size_t lower{0u};
+    const unsigned long lower{0ul};
     const size_t upper{originalSize - 1u};
-    const size_t maximumRandomIndexValue{originalSize - minimumSeedIndex};
+    const unsigned long maximumRandomIndexValue{static_cast<unsigned long>(originalSize - minimumSeedIndex)};
     const size_t randomIndexToRandomize{
                                     std::clamp(
-                                        rand->randBetween(
+                                        static_cast<size_t>(rand->randBetween(
                                             lower,
-                                            maximumRandomIndexValue) + minimumSeedIndex,
-                                        lower,
+                                            maximumRandomIndexValue)) + minimumSeedIndex,
+                                        static_cast<size_t>(lower),
                                         upper
                                     )
     };
 
-    newBuffer[randomIndexToRandomize] = static_cast<char>(rand->randBetween(0u, std::numeric_limits<char>::max()));
+    newBuffer[randomIndexToRandomize] = static_cast<char>(rand->randBetween(0ul, static_cast<unsigned long>(std::numeric_limits<char>::max())));
 }
