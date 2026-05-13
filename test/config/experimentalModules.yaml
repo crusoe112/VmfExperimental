@@ -43,23 +43,12 @@ vmfModules:
         - className: RadamsaSwapLineMutator
         - className: RadamsaSwapNodesMutator
         - className: RadamsaWidenCodePointMutator
-        - className: AFLCloneMutator
         - className: AFLDWordAddSubMutator
-        - className: AFLDeleteMutator
-        - className: AFLFlip2BitMutator
-        - className: AFLFlip2ByteMutator
-        - className: AFLFlip4BitMutator
-        - className: AFLFlip4ByteMutator
-        - className: AFLFlipBitMutator
-        - className: AFLFlipByteMutator
+        - className: AFLInteresting8Mutator
         - className: AFLInteresting16Mutator
         - className: AFLInteresting32Mutator
-        - className: AFLInteresting8Mutator
         - className: AFLOverwriteCopyMutator
         - className: AFLOverwriteFixedMutator
-        - className: AFLRandomByteAddSubMutator
-        - className: AFLRandomByteMutator
-        - className: AFLSpliceMutator
         - className: AFLWordAddSubMutator
 
 

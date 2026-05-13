@@ -28,6 +28,10 @@ set(CMAKE_CXX_COMPILER g++)
 
 project(VmfExtension VERSION 1.0 LANGUAGES CXX)
 
+# Use address sanitizer?
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+
 # Check that CMAKE_INSTALL_PREFIX directory is properly defined, exit with error if not
 if (NOT IS_DIRECTORY ${CMAKE_INSTALL_PREFIX})
   message( FATAL_ERROR "CMake variable CMAKE_INSTALL_PREFIX must be defined as full path to a VMF install tree, please use cmake -DCMAKE_INSTALL_PREFIX=/full/path/to/VMF" )
@@ -45,6 +49,12 @@ include(vmf)
 # These paths are invalid or conflict with the actual installed VMF location.
 # Since VMF cannot be modified directly, we override the target's include path and library location here.
 # This ensures correct compilation and linking against the local VMF install tree.
+# Import CoreModules shared library
+add_library(vmf_core_modules SHARED IMPORTED)
+set_target_properties(vmf_core_modules PROPERTIES
+  IMPORTED_LOCATION "${CMAKE_INSTALL_PREFIX}/plugins/libCoreModules.so"
+)
+
 get_target_property(_vmf_includes vmf_framework INTERFACE_INCLUDE_DIRECTORIES)
 list(REMOVE_ITEM _vmf_includes "/include")
 list(APPEND _vmf_includes "${CMAKE_INSTALL_PREFIX}/include")
