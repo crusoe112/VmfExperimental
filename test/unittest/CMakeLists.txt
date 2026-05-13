@@ -31,6 +31,8 @@
 find_package(Threads REQUIRED)
 
 SET(TEST_SRCS
+  ${CMAKE_INSTALL_PREFIX}/../../test/unittest/ModuleTestHelper.cpp
+  ${CMAKE_INSTALL_PREFIX}/../../test/unittest/TestConfigInterface.cpp
   ../../Radamsa/test/RadamsaDecrementByteMutatorTest.cpp
   ../../Radamsa/test/RadamsaDropByteMutatorTest.cpp
   ../../Radamsa/test/RadamsaFlipByteMutatorTest.cpp
@@ -78,14 +80,12 @@ target_include_directories(VmfTest PUBLIC
   ${CMAKE_INSTALL_PREFIX}/../../vmf/src/framework/baseclasses
   ${CMAKE_INSTALL_PREFIX}/../../vmf/src/framework/util
   ../../Radamsa/vmf/src/modules/common/mutator
-  ${CMAKE_INSTALL_PREFIX}/../../build/build_artifacts/deps/yaml-cpp/yaml-cpp-0.8.0/include
 )
 
 target_link_directories(VmfTest PUBLIC
   ${CMAKE_INSTALL_PREFIX}/lib
   ${CMAKE_INSTALL_PREFIX}/plugins
   ${CMAKE_INSTALL_PREFIX}/../lib
-  ${CMAKE_INSTALL_PREFIX}/../../build/build_artifacts # for yaml-cpp
 )
 
 target_link_libraries(VmfTest
@@ -96,7 +96,6 @@ target_link_libraries(VmfTest
   CoreModules
   Threads::Threads
   Radamsa
-  VmfTestLib
   yaml-cpp
 )
 gtest_discover_tests(VmfTest)

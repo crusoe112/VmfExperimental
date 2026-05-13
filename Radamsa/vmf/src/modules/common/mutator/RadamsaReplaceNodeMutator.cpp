@@ -142,10 +142,10 @@ void RadamsaReplaceNodeMutator::mutateTestCase(StorageModule& storage, StorageEn
         return;
     }
 
-    const unsigned long lower{0ul};
-    const unsigned long upper{static_cast<unsigned long>(numNodes - 1)};
-    size_t nodeIndexToReplace{static_cast<size_t>(this->rand->randBetween(lower, upper))};   // not const, because findNodeByIndex will modify it
-    size_t nodeIndexToCopy{static_cast<size_t>(this->rand->randBetween(lower, upper))};      // ^
+    const size_t lower{0u};
+    const size_t upper{numNodes - 1};
+    size_t nodeIndexToReplace{this->rand->randBetween(lower, upper)};   // not const, because findNodeByIndex will modify it
+    size_t nodeIndexToCopy{this->rand->randBetween(lower, upper)};      // ^
 
     if(nodeIndexToReplace != nodeIndexToCopy) {
         Node* toReplace = tr.findNodeByIndex(tr.root, nodeIndexToReplace); 

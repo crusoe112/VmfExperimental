@@ -139,15 +139,15 @@ void RadamsaDecrementByteMutator::mutateTestCase(StorageModule& storage, Storage
     memcpy(newBuffer, originalBuffer, originalSize);
 
     // Select a random byte to circularly decrement.
-    const unsigned long lower{0ul};
+    const size_t lower{0u};
     const size_t upper{originalSize - 1u};
-    const unsigned long maximumRandomIndexValue{static_cast<unsigned long>(originalSize - minimumSeedIndex)};
+    const size_t maximumRandomIndexValue{originalSize - minimumSeedIndex};
     const size_t randomIndexToDecrement{
                                     std::clamp(
-                                        static_cast<size_t>(rand->randBetween(
+                                        rand->randBetween(
                                             lower,
-                                            maximumRandomIndexValue)) + minimumSeedIndex,
-                                        static_cast<size_t>(lower),
+                                            maximumRandomIndexValue) + minimumSeedIndex,
+                                        lower,
                                         upper
                                     )
     };

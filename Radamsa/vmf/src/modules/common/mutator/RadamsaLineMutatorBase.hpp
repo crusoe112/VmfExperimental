@@ -422,14 +422,14 @@ public:
             return 0u;
 
         return GetRandomN_Bit(
-                            rand->randBetween(0ul, static_cast<unsigned long>(maximumValue - minimumValue)) + minimumValue,
+                            rand->randBetween(0u, maximumValue - minimumValue) + minimumValue,
                             rand);
     }
 
     size_t GetRandomN_Bit(const size_t n, VmfRand* rand)
     {
         const size_t highValue{(n - 1u) << 1u};
-        const size_t randomValue{rand->randBetween(0ul, static_cast<unsigned long>(highValue))};
+        const size_t randomValue{rand->randBetween(0u, highValue)};
         const size_t nBitValue{randomValue | highValue};
 
         return nBitValue;

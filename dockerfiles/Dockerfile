@@ -73,6 +73,10 @@ RUN set -ex \
 
 FROM vmf AS vmfexp
 
+# Install VMFExp dependencies
+RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends --fix-missing \
+    libyaml-cpp-dev
+
 # Copy and Build VmfExperimental
 COPY . /usr/local/src/VmfExperimental
 RUN set -ex \

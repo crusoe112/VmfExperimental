@@ -140,17 +140,17 @@ void RadamsaDeleteSequentialLinesMutator::mutateTestCase(StorageModule& storage,
 
     // Select a random line to delete.
 
-    const unsigned long minimumRandomLineOffset{0ul};
+    const size_t minimumRandomLineOffset{0u};
 
     const size_t randomLineIndexStart{
-                                static_cast<size_t>(rand->randBetween(
+                                rand->randBetween(
                                                 minimumRandomLineOffset,
-                                                static_cast<unsigned long>(numberOfLinesAfterIndex - 1u)))};
+                                                numberOfLinesAfterIndex - 1u)};
 
     const size_t randomLineIndexEnd{
-                                static_cast<size_t>(rand->randBetween(
+                                rand->randBetween(
                                                 minimumRandomLineOffset,
-                                                static_cast<unsigned long>((numberOfLinesAfterIndex - 1u) - randomLineIndexStart))) + randomLineIndexStart};
+                                                (numberOfLinesAfterIndex - 1u) - randomLineIndexStart) + randomLineIndexStart};
 
     const Line startLineData{
                         GetLineData(
