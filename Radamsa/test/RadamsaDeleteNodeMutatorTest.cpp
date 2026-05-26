@@ -55,7 +55,7 @@ class RadamsaDeleteNodeMutatorTest : public ::testing::Test {
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaDeleteNodeMutatorTest() override {}
+    ~RadamsaDeleteNodeMutatorTest() override = default;
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -80,9 +80,16 @@ class RadamsaDeleteNodeMutatorTest : public ::testing::Test {
     }
 
     void TearDown() override {
+      delete theMutator;
+      theMutator = nullptr;
+      delete testHelper;
+      testHelper = nullptr;
       delete registry;
+      registry = nullptr;
       delete metadata;
+      metadata = nullptr;
       delete storage;
+      storage = nullptr;
     }
 
     RadamsaDeleteNodeMutator* theMutator;

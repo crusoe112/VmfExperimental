@@ -53,7 +53,7 @@ class RadamsaDropByteMutatorTest : public ::testing::Test {
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaDropByteMutatorTest() override {}
+    ~RadamsaDropByteMutatorTest() override = default;
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -68,9 +68,16 @@ class RadamsaDropByteMutatorTest : public ::testing::Test {
   }
 
     void TearDown() override {
+      delete theMutator;
+      theMutator = nullptr;
+      delete testHelper;
+      testHelper = nullptr;
       delete registry;
+      registry = nullptr;
       delete metadata;
+      metadata = nullptr;
       delete storage;
+      storage = nullptr;
     }
 
     RadamsaDropByteMutator* theMutator;

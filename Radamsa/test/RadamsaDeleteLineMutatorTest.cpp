@@ -55,7 +55,7 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaDeleteLineMutatorTest() override {}
+    ~RadamsaDeleteLineMutatorTest() override = default;
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -80,9 +80,16 @@ class RadamsaDeleteLineMutatorTest : public ::testing::Test {
   }
 
     void TearDown() override {
+      delete theMutator;
+      theMutator = nullptr;
+      delete testHelper;
+      testHelper = nullptr;
       delete registry;
+      registry = nullptr;
       delete metadata;
+      metadata = nullptr;
       delete storage;
+      storage = nullptr;
     }
 
     RadamsaDeleteLineMutator* theMutator;
@@ -185,7 +192,7 @@ TEST_F(RadamsaDeleteLineMutatorTest, TwoLines)
                             modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff
     EXPECT_EQ((buff_len / line_len) - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
+               std::count(modBuff, modBuff + modEntry->getBufferSize(testCaseKey), '\n'));
     // test buff len
     EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
     // test buff contents
@@ -224,7 +231,7 @@ TEST_F(RadamsaDeleteLineMutatorTest, ThreeLines)
                             modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff
     EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
+               std::count(modBuff, modBuff + modEntry->getBufferSize(testCaseKey), '\n'));
     // test buff len
     EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
     // test buff contents
