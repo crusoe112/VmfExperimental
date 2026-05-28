@@ -142,16 +142,16 @@ void RadamsaFlipByteMutator::mutateTestCase(StorageModule& storage, StorageEntry
 
     // Select a random byte to drop from the original buffer.
 
-    const size_t lower{0u};
+    const unsigned long lower{0ul};
     const size_t upper{originalSize - 1u};
-    const size_t maximumRandomIndexValue{originalSize - minimumSeedIndex};
+    const unsigned long maximumRandomIndexValue{static_cast<unsigned long>(originalSize - minimumSeedIndex)};
     const size_t randomIndexToFlip{
                             std::clamp(
-                                    rand->randBetween(
+                                    static_cast<size_t>(rand->randBetween(
                                                 lower,
                                                 maximumRandomIndexValue
-                                    ) + minimumSeedIndex,
-                                    lower,
+                                    )) + minimumSeedIndex,
+                                    static_cast<size_t>(lower),
                                     upper)};
 
     // Select a random bit to flip from the random byte.
@@ -159,10 +159,10 @@ void RadamsaFlipByteMutator::mutateTestCase(StorageModule& storage, StorageEntry
     // we add 1 so that a maximum number of 8 bit shift operations can be performed against a char containing the value 0x01.
 
     const size_t randomBitShift{
-        rand->randBetween(
-            0u, 
+        static_cast<size_t>(rand->randBetween(
+            0ul, 
             static_cast<unsigned long>(std::numeric_limits<char>::digits + 1u)
-        )
+        ))
     };
     const char randomMaskedBit{static_cast<char>(0x01u << randomBitShift)};
 

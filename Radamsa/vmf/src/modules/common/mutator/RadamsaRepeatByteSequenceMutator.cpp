@@ -33,6 +33,7 @@
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
+#include <limits>
 
 using namespace vmf;
 
@@ -56,7 +57,15 @@ Module* RadamsaRepeatByteSequenceMutator::build(std::string name)
  */
 void RadamsaRepeatByteSequenceMutator::init(ConfigInterface& config)
 {
+    /*
+     * Cap comes from the configuration; 0 disables the cap.
+     */
 
+    const int configured = config.getIntParam(getModuleName(), "maxBufferGrowthBytes",
+                                              static_cast<int>(m_maxBufferGrowthBytes));
+    m_maxBufferGrowthBytes = (configured == 0)
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(configured);
 }
 
 /**
@@ -133,41 +142,51 @@ void RadamsaRepeatByteSequenceMutator::mutateTestCase(StorageModule& storage, St
 
 
     // Select random indexes for the start and end of the sequence
-    const size_t start_lower{0u};
-    const size_t start_upper{originalSize - 1u - 1u}; // additional -1 to leave at least one byte at the end
-    const size_t start_index{rand->randBetween(start_lower, start_upper)};
+    const unsigned long start_lower{0ul};
+    const unsigned long start_upper{static_cast<unsigned long>(originalSize - 1u - 1u)}; // additional -1 to leave at least one byte at the end
+    const size_t start_index{static_cast<size_t>(rand->randBetween(start_lower, start_upper))};
 
-    const size_t end_lower{start_index + 1u};
-    const size_t end_upper{originalSize - 1u};
-    const size_t end_index{rand->randBetween(end_lower, end_upper)};
+    const unsigned long end_lower{static_cast<unsigned long>(start_index + 1u)};
+    const unsigned long end_upper{static_cast<unsigned long>(originalSize - 1u)};
+    const size_t end_index{static_cast<size_t>(rand->randBetween(end_lower, end_upper))};
 
-    // Get random number of sequence repetitions
-    const size_t numberOfRepetitions{GetRandomRepetitionLength(rand)};
+    /*
+     *	Clamp numberOfRepetitions against the configurable maxBufferGrowthBytes budget so the per-call allocation `seq_len * numberOfRepetitions` stays bounded. The repetition loop below runs i in [0, numberOfRepetitions). The post-sequence memcpy writes to `newBuffer + start_index + seq_len * numberOfRepetitions` and reads from `originalBuffer + start_index + seq_len`, the byte after the source sequence.
+     */
 
-    // Calculate the size of the modified buffer
     const size_t seq_len{end_index - start_index + 1u};
-    const size_t newBufferSize{originalSize + (seq_len * numberOfRepetitions) + 1u}; // +1 because we're appending a null-terminator
 
-    // Allocate the new buffer and set it's elements to zero.
+    // Cap repetitions so the per-call growth `seq_len * numberOfRepetitions` stays within `m_maxBufferGrowthBytes`. The original numberOfRepetitions ceiling is 0x20000 from GetRandomRepetitionLength; without this cap a 64 KiB input would request ~8 GiB.
+    size_t numberOfRepetitions{GetRandomRepetitionLength(rand)};
+    const size_t maxRepetitions{m_maxBufferGrowthBytes / seq_len};
+    if (numberOfRepetitions > maxRepetitions)
+    {
+        numberOfRepetitions = (maxRepetitions > 0u) ? maxRepetitions : 1u;
+    }
+
+    // Output layout: prefix [0, start_index) + (numberOfRepetitions + 1) sequence copies + suffix [end_index + 1, originalSize) + null terminator.
+    const size_t newBufferSize{originalSize + (seq_len * numberOfRepetitions) + 1u};
+
     char* newBuffer{newEntry->allocateBuffer(testCaseKey, static_cast<int>(newBufferSize))};
     memset(newBuffer, 0u, newBufferSize);
 
-    // Copy pre-sequence into modified buffer
+    // Copy prefix [0, start_index).
     memcpy(newBuffer, originalBuffer, start_index);
 
-    // Copy post-sequence into modified buffer
-    memcpy(
-        newBuffer, 
-        originalBuffer + start_index + (seq_len * numberOfRepetitions), 
-        originalSize - end_index - 1u
-    );
-
-    // Fill the rest with the byte sequence
-    for (size_t i = 1; i < numberOfRepetitions; ++i) {
+    // Copy (numberOfRepetitions + 1) copies of the sequence at successive offsets.
+    for (size_t i = 0u; i <= numberOfRepetitions; ++i)
+    {
         memcpy(
-            newBuffer + start_index + (i * seq_len), 
-            originalBuffer + start_index, 
+            newBuffer + start_index + (i * seq_len),
+            originalBuffer + start_index,
             seq_len
         );
     }
+
+    // Copy suffix [end_index + 1, originalSize) immediately after the repetitions.
+    memcpy(
+        newBuffer + start_index + ((numberOfRepetitions + 1u) * seq_len),
+        originalBuffer + end_index + 1u,
+        originalSize - end_index - 1u
+    );
 }

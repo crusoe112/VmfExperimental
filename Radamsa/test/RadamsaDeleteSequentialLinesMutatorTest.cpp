@@ -55,7 +55,7 @@ class RadamsaDeleteSequentialLinesMutatorTest : public ::testing::Test {
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaDeleteSequentialLinesMutatorTest() override {}
+    ~RadamsaDeleteSequentialLinesMutatorTest() override = default;
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -80,9 +80,16 @@ class RadamsaDeleteSequentialLinesMutatorTest : public ::testing::Test {
   }
 
     void TearDown() override {
+      delete theMutator;
+      theMutator = nullptr;
+      delete testHelper;
+      testHelper = nullptr;
       delete registry;
+      registry = nullptr;
       delete metadata;
+      metadata = nullptr;
       delete storage;
+      storage = nullptr;
     }
 
     RadamsaDeleteSequentialLinesMutator* theMutator;
@@ -145,7 +152,7 @@ TEST_F(RadamsaDeleteSequentialLinesMutatorTest, OneLine)
                             modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff
     EXPECT_EQ(buff_len / line_len - 1, 
-               std::count(modBuff, modBuff + buff_len, '\n'));
+               std::count(modBuff, modBuff + modEntry->getBufferSize(testCaseKey), '\n'));
     // test buff len
     EXPECT_EQ(buff_len - line_len + 1, modEntry->getBufferSize(testCaseKey));
     // test buff contents
@@ -180,7 +187,7 @@ TEST_F(RadamsaDeleteSequentialLinesMutatorTest, TwoLines)
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
                             modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff (at least one line removed)
-    EXPECT_LE(std::count(modBuff, modBuff + buff_len, '\n'),
+    EXPECT_LE(std::count(modBuff, modBuff + modEntry->getBufferSize(testCaseKey), '\n'),
               buff_len / line_len - 1);
     // test buff len
     EXPECT_LE(modEntry->getBufferSize(testCaseKey), buff_len - line_len + 1);
@@ -220,7 +227,7 @@ TEST_F(RadamsaDeleteSequentialLinesMutatorTest, ThreeLines)
     ASSERT_FALSE(std::equal(buff,       buff + buff_len, 
                             modBuff,    modBuff + modEntry->getBufferSize(testCaseKey) - 1));
     // test number of lines in buff (at least one line removed)
-    EXPECT_LE(std::count(modBuff, modBuff + buff_len, '\n'),
+    EXPECT_LE(std::count(modBuff, modBuff + modEntry->getBufferSize(testCaseKey), '\n'),
               buff_len / line_len - 1);
     // test buff len
     EXPECT_LE(modEntry->getBufferSize(testCaseKey), buff_len - line_len + 1);

@@ -137,7 +137,7 @@ void AFLInteresting32Mutator::mutateTestCase(StorageModule& storage, StorageEntr
     }
 
     // Pick a random byte and replace it with an interesting value
-    int item = rand->randBelow(sizeof(AFLInteresting32Mutator::interesting_32) >> 2);
+    int item = rand->randBelow(INTERESTING_8_LEN + INTERESTING_16_LEN + INTERESTING_32_LEN);
     *(u32 *) (newBuff + rand->randBelow(size - 3)) = AFLInteresting32Mutator::interesting_32[item];
 
     return;

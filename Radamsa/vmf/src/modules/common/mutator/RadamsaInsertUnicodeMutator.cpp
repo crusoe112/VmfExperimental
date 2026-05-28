@@ -131,7 +131,12 @@ void RadamsaInsertUnicodeMutator::mutateTestCase(StorageModule& storage, Storage
 {
     // Insert a "funny" unicode sequence into a random index
 
-    const size_t minimumSize{0u};
+    /*
+     *	minimumSize is 1: a zero-byte input would underflow `data.size() - 1` to SIZE_MAX and produce undefined behaviour at the subsequent `data.insert(data.begin() + insert_index, ...)` call. Inputs below the floor return via CopyBufferAsIs.
+     */
+
+    // Minimum input size accepted by this mutator (in bytes).
+    const size_t minimumSize{1u};
     const size_t minimumSeedIndex{0u};
     size_t originalSize;
     char* originalBuffer;
@@ -170,12 +175,12 @@ void RadamsaInsertUnicodeMutator::mutateTestCase(StorageModule& storage, Storage
 
     std::vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
 
-    const size_t lower{0};
-    size_t upper{data.size() - 1};
-    const size_t insert_index = this->rand->randBetween(lower, upper);
+    const unsigned long lower{0ul};
+    unsigned long upper{static_cast<unsigned long>(data.size() - 1)};
+    const size_t insert_index = static_cast<size_t>(this->rand->randBetween(lower, upper));
 
-    upper = this->funnyUnicode.size() - 1;
-    const std::vector<uint8_t> toInsert = this->funnyUnicode[this->rand->randBetween(lower, upper)];
+    upper = static_cast<unsigned long>(this->funnyUnicode.size() - 1);
+    const std::vector<uint8_t> toInsert = this->funnyUnicode[static_cast<size_t>(this->rand->randBetween(lower, upper))];
 
     data.insert(
         data.begin() + insert_index,

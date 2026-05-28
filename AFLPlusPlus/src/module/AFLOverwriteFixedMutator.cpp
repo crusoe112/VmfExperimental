@@ -129,7 +129,7 @@ void AFLOverwriteFixedMutator::mutateTestCase(StorageModule& storage, StorageEnt
     }
 
     // Choose a random block length
-    u32 copy_len = AFLDeleteMutator::choose_block_len(rand, size - 1);
+    u32 copy_len = AFLDeleteMutator::choose_block_len(*rand, size - 1);
     // Choose a random location to copy the block to
     u32 copy_to = rand->randBelow((unsigned long)(size - copy_len + 1));
     // Choose a random strategy with 50% chance of each

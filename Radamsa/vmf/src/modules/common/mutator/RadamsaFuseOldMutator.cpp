@@ -33,6 +33,7 @@
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
+#include <limits>
 #include <set>
 
 using namespace vmf;
@@ -59,7 +60,10 @@ Module* RadamsaFuseOldMutator::build(std::string name)
  */
 void RadamsaFuseOldMutator::init(ConfigInterface& config)
 {
-
+    const int configured = config.getIntParam(getModuleName(), "maxFuseInputSize", static_cast<int>(m_maxFuseInputSize));
+    m_maxFuseInputSize = (configured == 0)
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(configured);
 }
 
 /**
@@ -128,6 +132,12 @@ void RadamsaFuseOldMutator::mutateTestCase(StorageModule& storage, StorageEntry*
 
     // Check if minimum seed index is within valid range
     if (minimumSeedIndex > originalSize - 1u)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+
+    if (m_maxFuseInputSize != std::numeric_limits<size_t>::max() && originalSize > m_maxFuseInputSize)
     {
         CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
         return;

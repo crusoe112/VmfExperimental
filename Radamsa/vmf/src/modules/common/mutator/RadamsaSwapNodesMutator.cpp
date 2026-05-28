@@ -132,7 +132,16 @@ void RadamsaSwapNodesMutator::mutateTestCase(StorageModule& storage, StorageEntr
     }
 
     const std::string treeStr(originalBuffer, originalSize);
-    Tree tr(treeStr);
+    /*
+     *	Build the tree via the noexcept tryBuild factory; fall back to CopyBufferAsIs when the input does not parse as a tree.
+     */
+    auto maybeTree = Tree::tryBuild(treeStr);
+    if (!maybeTree)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+    Tree& tr = *maybeTree;
 
     size_t numNodes = tr.countNodes(tr.root);
     // Check if tree has minimum required number of nodes
@@ -142,10 +151,10 @@ void RadamsaSwapNodesMutator::mutateTestCase(StorageModule& storage, StorageEntr
         return;
     }
 
-    const size_t lower{0u};
-    const size_t upper{numNodes - 1};
-    size_t nodeIndex1{this->rand->randBetween(lower, upper)};   // not const, because findNodeByIndex will modify it
-    size_t nodeIndex2{this->rand->randBetween(lower, upper)};   // ^
+    const unsigned long lower{0ul};
+    const unsigned long upper{static_cast<unsigned long>(numNodes - 1)};
+    size_t nodeIndex1{static_cast<size_t>(this->rand->randBetween(lower, upper))};   // not const, because findNodeByIndex will modify it
+    size_t nodeIndex2{static_cast<size_t>(this->rand->randBetween(lower, upper))};   // ^
     
     if(nodeIndex1 != nodeIndex2) {
         Node* node1 = tr.findNodeByIndex(tr.root, nodeIndex1); 

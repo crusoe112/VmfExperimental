@@ -141,16 +141,16 @@ void RadamsaInsertByteMutator::mutateTestCase(StorageModule& storage, StorageEnt
 
     // Select a random index from which the new byte will be inserted.
 
-    const size_t lower{0u};
+    const unsigned long lower{0ul};
     const size_t upper{originalSize - 1u};
-    const size_t maximumRandomIndexValue{originalSize - minimumSeedIndex};
+    const unsigned long maximumRandomIndexValue{static_cast<unsigned long>(originalSize - minimumSeedIndex)};
     const size_t randomInsertionIndex{
                                 std::clamp(
-                                    rand->randBetween(
+                                    static_cast<size_t>(rand->randBetween(
                                         lower,
                                         maximumRandomIndexValue
-                                    ) + minimumSeedIndex,
-                                    lower,
+                                    )) + minimumSeedIndex,
+                                    static_cast<size_t>(lower),
                                     upper
                                 )
     };
@@ -163,7 +163,7 @@ void RadamsaInsertByteMutator::mutateTestCase(StorageModule& storage, StorageEnt
         newBuffer[destinationIndex] = originalBuffer[sourceIndex];
 
         if (sourceIndex == randomInsertionIndex)
-            newBuffer[++destinationIndex] = static_cast<char>(rand->randBetween(0u, std::numeric_limits<char>::max()));
+            newBuffer[++destinationIndex] = static_cast<char>(rand->randBetween(0ul, static_cast<unsigned long>(std::numeric_limits<char>::max())));
 
         ++destinationIndex;
     }

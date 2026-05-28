@@ -128,7 +128,7 @@ void AFLOverwriteCopyMutator::mutateTestCase(StorageModule& storage, StorageEntr
         return;
     }
 
-    u32 copy_len = AFLDeleteMutator::choose_block_len(rand, size - 1);
+    u32 copy_len = AFLDeleteMutator::choose_block_len(*rand, size - 1);
     u32 copy_from = rand->randBelow((unsigned long)(size - copy_len + 1));
     u32 copy_to = rand->randBelow((unsigned long)(size - copy_len + 1));
 

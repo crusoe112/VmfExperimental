@@ -53,5 +53,8 @@ class RadamsaRepeatByteMutator: public MutatorModule, public RadamsaByteMutatorB
 
     private:
         VmfRand* rand = VmfRand::getInstance();
+
+        // Per-call upper bound on additional bytes appended via byte repetition. Default 131072. Set the `maxByteRepetitions` config key to override; 0 disables the cap.
+        size_t m_maxByteRepetitions{131072u};
 };
 }

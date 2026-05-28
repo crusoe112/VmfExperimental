@@ -55,7 +55,7 @@ class RadamsaWidenCodePointMutatorTest : public ::testing::Test {
       config = testHelper -> getConfig();
     }
 
-    ~RadamsaWidenCodePointMutatorTest() override {}
+    ~RadamsaWidenCodePointMutatorTest() override = default;
 
     void SetUp() override {
       testCaseKey = registry->registerKey(
@@ -80,9 +80,16 @@ class RadamsaWidenCodePointMutatorTest : public ::testing::Test {
     }
 
     void TearDown() override {
+      delete theMutator;
+      theMutator = nullptr;
+      delete testHelper;
+      testHelper = nullptr;
       delete registry;
+      registry = nullptr;
       delete metadata;
+      metadata = nullptr;
       delete storage;
+      storage = nullptr;
     }
 
     RadamsaWidenCodePointMutator* theMutator;
@@ -207,7 +214,7 @@ TEST_F(RadamsaWidenCodePointMutatorTest, MixedValidInvalid)
     StorageEntry* modEntry = storage->createNewEntry();
     char* modBuff;
 
-    const size_t buff_len = 2;
+    const size_t buff_len = 3;
     char* buff = baseEntry->allocateBuffer(testCaseKey, buff_len);
 
     buff[0] = 127;

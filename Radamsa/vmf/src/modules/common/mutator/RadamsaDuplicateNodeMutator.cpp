@@ -132,7 +132,16 @@ void RadamsaDuplicateNodeMutator::mutateTestCase(StorageModule& storage, Storage
     }
 
     const std::string treeStr(originalBuffer, originalSize);
-    Tree tr(treeStr);
+    /*
+     *	Build the tree via the noexcept tryBuild factory; fall back to CopyBufferAsIs when the input does not parse as a tree.
+     */
+    auto maybeTree = Tree::tryBuild(treeStr);
+    if (!maybeTree)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+    Tree& tr = *maybeTree;
 
     size_t numNodes = tr.countNodes(tr.root);
     // Check if tree has minimum required number of nodes
@@ -142,9 +151,9 @@ void RadamsaDuplicateNodeMutator::mutateTestCase(StorageModule& storage, Storage
         return;
     }
 
-    const size_t lower{1u};
-    const size_t upper{numNodes - 2};
-    size_t nodeIndexToDuplicate{this->rand->randBetween(lower, upper)}; // not const, because findNodeByIndex will modify it
+    const unsigned long lower{1ul};
+    const unsigned long upper{static_cast<unsigned long>(numNodes - 2)};
+    size_t nodeIndexToDuplicate{static_cast<size_t>(this->rand->randBetween(lower, upper))}; // not const, because findNodeByIndex will modify it
     Node* nodeToDuplicate = tr.findNodeByIndex(tr.root, nodeIndexToDuplicate); 
 
     tr.duplicateNode(nodeToDuplicate, nodeToDuplicate->parent);

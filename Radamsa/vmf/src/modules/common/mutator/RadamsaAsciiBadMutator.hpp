@@ -53,5 +53,8 @@ class RadamsaAsciiBadMutator: public MutatorModule, public RadamsaByteMutatorBas
 
     private:
         VmfRand* rand = VmfRand::getInstance();
+
+        // Per-call upper bound on the number of newlines inserted by the `mutateTextData` newline-flood case. Default 65536. Set the `maxNewlineInsertions` config key to override; 0 disables the cap.
+        size_t m_maxNewlineInsertions{65536u};
 };
 }
