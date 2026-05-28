@@ -132,24 +132,28 @@ void RadamsaWidenCodePointMutator::mutateTestCase(StorageModule& storage, Storag
 
     std::vector<uint8_t> data(originalBuffer, originalBuffer + originalSize);
 
-    const unsigned long lower{0ul};
-    const unsigned long upper{static_cast<unsigned long>(data.size() - 1)};
-    size_t index;
-    uint8_t codePoint;
-    size_t attempts = 0;
-    const size_t max_attempts = data.size();
-    do {
-        attempts++;
-        // Check if unable to find valid ASCII byte after maximum attempts
-        if (attempts > max_attempts)
+    // Collect indices of all valid printable ASCII bytes
+    std::vector<size_t> validIndices;
+    for (size_t i = 0; i < data.size(); ++i)
+    {
+        if (data[i] >= 32 && data[i] <= 126)
         {
-            CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
-            return;
+            validIndices.push_back(i);
         }
+    }
 
-        index = static_cast<size_t>(this->rand->randBetween(lower, upper));
-        codePoint = data[index];
-    } while (codePoint < 32 || codePoint > 126); // ensure codePoint is printable ascii
+    // If no valid ASCII byte exists, copy buffer as-is
+    if (validIndices.empty())
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+
+    // Pick a random valid index
+    const unsigned long lower{0ul};
+    const unsigned long upper{static_cast<unsigned long>(validIndices.size() - 1)};
+    size_t index = validIndices[static_cast<size_t>(this->rand->randBetween(lower, upper))];
+    uint8_t codePoint = data[index];
 
     data[index] = 0b11000000;   // set 2-byte utf prefix (110xxxxx)
     data.insert(data.begin() + index + 1, codePoint | 0b10000000); // set continuation byte prefix (10xxxxxx)
