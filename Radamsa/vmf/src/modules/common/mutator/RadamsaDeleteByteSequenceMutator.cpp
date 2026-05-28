@@ -151,9 +151,12 @@ void RadamsaDeleteByteSequenceMutator::mutateTestCase(StorageModule& storage, St
     memcpy(newBuffer, originalBuffer, start_index);
 
     // Copy post-sequence into modified buffer
+    /*
+     *	Destination is `newBuffer + start_index`, immediately after the prefix copied above. Writing at offset 0 here would overwrite the prefix.
+     */
     memcpy(
-        newBuffer, 
-        originalBuffer + end_index + 1u, 
+        newBuffer + start_index,
+        originalBuffer + end_index + 1u,
         originalSize - (end_index + 1u)
     );
 }

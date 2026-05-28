@@ -81,20 +81,14 @@ public:
             Size = size;
         }
 
+        /*
+         *	Move-construct by transferring ownership of `other.Data` directly via std::unique_ptr move-construction. unique_ptr::release() returns the raw pointer and the caller becomes responsible for deletion; std::move preserves the ownership chain.
+         */
+
+        // Move-constructs by transferring ownership of `other.Data` via std::unique_ptr's move-constructor. After the move, `other.Data == nullptr` and `other.Size == 0`.
         LineVector(LineVector&& other) noexcept
+            : Data{std::move(other.Data)}, Size{other.Size}
         {
-            // Copy Data
-
-            const size_t& size{other.Size};
-
-            Data = std::make_unique<char[]>(size);
-            memcpy(Data.get(), other.Data.get(), size);
-
-            Size = size;
-
-            // Release ownership
-
-            other.Data.release();
             other.Size = 0u;
         }
 
@@ -112,22 +106,19 @@ public:
             return *this;
         }
 
-        LineVector& operator=(LineVector&& other)
+        /*
+         *	Move-assign by transferring ownership of `other.Data` via std::unique_ptr move-assignment.
+         */
+
+        // Move-assigns by transferring ownership of `other.Data` via std::unique_ptr's move-assignment. After the move, `other.Data == nullptr` and `other.Size == 0`.
+        LineVector& operator=(LineVector&& other) noexcept
         {
-            // Copy Data
-
-            const size_t& size{other.Size};
-
-            Data = std::make_unique<char[]>(size);
-            memcpy(Data.get(), other.Data.get(), size);
-
-            Size = size;
-
-            // Release ownership
-
-            other.Data.release();
-            other.Size = 0u;
-
+            if (this != &other)
+            {
+                Data = std::move(other.Data);
+                Size = other.Size;
+                other.Size = 0u;
+            }
             return *this;
         }
 
@@ -185,29 +176,18 @@ public:
             }
         }
 
+        /*
+         *	Move-construct by transferring ownership of `other.Data` via std::unique_ptr move-construction. The contained LineVector[] array and every char[] buffer owned by its elements travel with `Data`.
+         */
+
+        // Move-constructs by transferring ownership of `other.Data` via std::unique_ptr's move-constructor. After the move, `other.Data == nullptr`, `other.Capacity == 0`, and `other.NumberOfElements == 0`.
         LineList(LineList&& other) noexcept
+            : Data{std::move(other.Data)},
+              NumberOfElements{other.NumberOfElements},
+              Capacity{other.Capacity}
         {
-            // Copy Data
-
-            const size_t& numberOfElements{other.NumberOfElements};
-
-            NumberOfElements = numberOfElements;
-            Capacity = other.Capacity;
-
-            Data = std::make_unique<LineVector[]>(numberOfElements);
-            //memcpy(Data.get(), other.Data.get(), numberOfElements); //not legal
-            int count = numberOfElements;
-            for(int i=0; i<count; i++)
-            {
-                Data[i] = other.Data[i];
-            }
-
-
-            // Release ownership
-
-            other.Data.release();
-            other.Capacity = 0u;
             other.NumberOfElements = 0u;
+            other.Capacity = 0u;
         }
 
         LineList& operator=(const LineList& other)
@@ -230,29 +210,21 @@ public:
             return *this;
         }
 
-        LineList& operator=(LineList&& other)
+        /*
+         *	Move-assign by transferring ownership of `other.Data` via std::unique_ptr move-assignment.
+         */
+
+        // Move-assigns by transferring ownership of `other.Data` via std::unique_ptr's move-assignment.
+        LineList& operator=(LineList&& other) noexcept
         {
-            // Copy Data
-
-            const size_t& numberOfElements{other.NumberOfElements};
-
-            NumberOfElements = numberOfElements;
-            Capacity = other.Capacity;
-
-            Data = std::make_unique<LineVector[]>(numberOfElements);
-            //memcpy(Data.get(), other.Data.get(), numberOfElements); //not legal
-            int count = numberOfElements;
-            for(int i=0; i<count; i++)
+            if (this != &other)
             {
-                Data[i] = other.Data[i];
+                Data = std::move(other.Data);
+                NumberOfElements = other.NumberOfElements;
+                Capacity = other.Capacity;
+                other.NumberOfElements = 0u;
+                other.Capacity = 0u;
             }
-
-            // Release ownership
-
-            other.Data.release();
-            other.Capacity = 0u;
-            other.NumberOfElements = 0u;
-
             return *this;
         }
 

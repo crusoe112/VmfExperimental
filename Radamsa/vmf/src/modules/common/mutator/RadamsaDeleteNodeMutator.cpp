@@ -131,7 +131,16 @@ void RadamsaDeleteNodeMutator::mutateTestCase(StorageModule& storage, StorageEnt
     }
 
     const std::string treeStr(originalBuffer, originalSize);
-    Tree tr(treeStr);
+    /*
+     *	Build the tree via the noexcept tryBuild factory; fall back to CopyBufferAsIs when the input does not parse as a tree.
+     */
+    auto maybeTree = Tree::tryBuild(treeStr);
+    if (!maybeTree)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+    Tree& tr = *maybeTree;
 
     size_t numNodes = tr.countNodes(tr.root);
 

@@ -131,7 +131,12 @@ void RadamsaInsertUnicodeMutator::mutateTestCase(StorageModule& storage, Storage
 {
     // Insert a "funny" unicode sequence into a random index
 
-    const size_t minimumSize{0u};
+    /*
+     *	minimumSize is 1: a zero-byte input would underflow `data.size() - 1` to SIZE_MAX and produce undefined behaviour at the subsequent `data.insert(data.begin() + insert_index, ...)` call. Inputs below the floor return via CopyBufferAsIs.
+     */
+
+    // Minimum input size accepted by this mutator (in bytes).
+    const size_t minimumSize{1u};
     const size_t minimumSeedIndex{0u};
     size_t originalSize;
     char* originalBuffer;

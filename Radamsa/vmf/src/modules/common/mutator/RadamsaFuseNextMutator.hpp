@@ -53,5 +53,8 @@ class RadamsaFuseNextMutator: public MutatorModule, public RadamsaByteMutatorBas
 
     private:
         VmfRand* rand = VmfRand::getInstance();
+
+        // Per-call upper bound on fuse input size. Default 4096. Set the `maxFuseInputSize` config key to override; 0 disables the cap.
+        size_t m_maxFuseInputSize{4096u};
 };
 }

@@ -33,6 +33,7 @@
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
+#include <limits>
 
 using namespace vmf;
 
@@ -56,7 +57,15 @@ Module* RadamsaRepeatLineMutator::build(std::string name)
  */
 void RadamsaRepeatLineMutator::init(ConfigInterface& config)
 {
+    /*
+     * Cap comes from the configuration; 0 disables the cap.
+     */
 
+    const int configured = config.getIntParam(getModuleName(), "maxBufferGrowthBytes",
+                                              static_cast<int>(m_maxBufferGrowthBytes));
+    m_maxBufferGrowthBytes = (configured == 0)
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(configured);
 }
 
 /**
@@ -139,13 +148,13 @@ void RadamsaRepeatLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
 
     // Select a random line to duplicate.
 
-    constexpr size_t minimumRandomLineIndex{0u};
-    const size_t maximumRandomLineIndex{numberOfLinesAfterIndex - 1u};
+    constexpr unsigned long minimumRandomLineIndex{0ul};
+    const unsigned long maximumRandomLineIndex{static_cast<unsigned long>(numberOfLinesAfterIndex - 1u)};
 
     const size_t randomLineIndex{
-                            rand->randBetween(
+                            static_cast<size_t>(rand->randBetween(
                                             minimumRandomLineIndex,
-                                            maximumRandomLineIndex)};
+                                            maximumRandomLineIndex))};
 
     const Line lineData{
                     GetLineData(
@@ -154,7 +163,20 @@ void RadamsaRepeatLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
                             randomLineIndex,
                             numberOfLinesAfterIndex)};
 
-    const size_t numberOfRandomLineRepetitions{GetRandomRepetitionLength(this->rand)};
+    /*
+     *	Clamp numberOfRandomLineRepetitions against the configurable budget so the per-call allocation `lineData.Size * numberOfRandomLineRepetitions` stays bounded.
+     */
+
+    // Cap repetitions so the per-call growth `lineData.Size * numberOfRandomLineRepetitions` stays within `m_maxBufferGrowthBytes`.
+    size_t numberOfRandomLineRepetitions{GetRandomRepetitionLength(this->rand)};
+    if (lineData.Size > 0u)
+    {
+        const size_t maxRepetitions{m_maxBufferGrowthBytes / lineData.Size};
+        if (numberOfRandomLineRepetitions > maxRepetitions)
+        {
+            numberOfRandomLineRepetitions = (maxRepetitions > 0u) ? maxRepetitions : 1u;
+        }
+    }
 
     // The new buffer will be multiple lines larger than the original buffer;
     // additionally, it will contain one additional byte since a null-terminator will be appended to the end.
@@ -169,22 +191,22 @@ void RadamsaRepeatLineMutator::mutateTestCase(StorageModule& storage, StorageEnt
     // Copy data from the original buffer into the new buffer, but repeat the random line.
     // The last element in the new buffer is skipped since it was implicitly set to zero during allocation.
 
-    for(size_t sourceIndex{0u}, destinationIndex{0u}; sourceIndex < originalSize; ++sourceIndex)
+    const size_t lineStart{lineData.StartIndex};
+    const size_t lineEnd{lineData.StartIndex + lineData.Size};
+    size_t destinationIndex{0u};
+
+    // Copy bytes before the selected line
+    memcpy(&newBuffer[destinationIndex], &originalBuffer[0], lineStart);
+    destinationIndex += lineStart;
+
+    // Write the selected line (numberOfRandomLineRepetitions + 1) times
+    for (size_t k{0u}; k < (numberOfRandomLineRepetitions + 1u); ++k)
     {
-        if(sourceIndex == lineData.StartIndex)
-        {
-            for (size_t k{0u}; k < (numberOfRandomLineRepetitions + 1u); ++k)
-            {
-                memcpy(&newBuffer[destinationIndex], &originalBuffer[sourceIndex], lineData.Size);
-
-                destinationIndex += lineData.Size;
-            }
-
-            sourceIndex += lineData.Size;
-        }
-
-        newBuffer[destinationIndex] = originalBuffer[sourceIndex];
-
-        ++destinationIndex;
+        memcpy(&newBuffer[destinationIndex], &originalBuffer[lineStart], lineData.Size);
+        destinationIndex += lineData.Size;
     }
+
+    // Copy bytes after the selected line
+    memcpy(&newBuffer[destinationIndex], &originalBuffer[lineEnd], originalSize - lineEnd);
+    destinationIndex += originalSize - lineEnd;
 }

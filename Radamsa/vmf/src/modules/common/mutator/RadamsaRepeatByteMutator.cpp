@@ -33,6 +33,7 @@
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
+#include <limits>
 
 using namespace vmf;
 
@@ -56,7 +57,15 @@ Module* RadamsaRepeatByteMutator::build(std::string name)
  */
 void RadamsaRepeatByteMutator::init(ConfigInterface& config)
 {
+    /*
+     * Cap comes from the configuration; 0 disables the cap.
+     */
 
+    const int configured = config.getIntParam(getModuleName(), "maxByteRepetitions",
+                                              static_cast<int>(m_maxByteRepetitions));
+    m_maxByteRepetitions = (configured == 0)
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(configured);
 }
 
 /**
@@ -133,7 +142,16 @@ void RadamsaRepeatByteMutator::mutateTestCase(StorageModule& storage, StorageEnt
     // The new buffer size will contain a random number of additional elements since we are repeating a random byte.
     // Furthermore, it will contain one more element since we are appending a null-terminator to the end.
 
-    const size_t numberOfRandomByteRepetitions{GetRandomRepetitionLength(rand)};
+    /*
+     *	Clamp numberOfRandomByteRepetitions against the configurable budget so the per-call growth (up to ~128 KiB without the cap) stays bounded under GA-feedback iteration.
+     */
+
+    // Cap repetitions so per-call growth stays within `m_maxByteRepetitions`.
+    size_t numberOfRandomByteRepetitions{GetRandomRepetitionLength(rand)};
+    if (numberOfRandomByteRepetitions > m_maxByteRepetitions)
+    {
+        numberOfRandomByteRepetitions = m_maxByteRepetitions;
+    }
     const size_t newBufferSize{originalSize + numberOfRandomByteRepetitions + 1u};
 
     // Allocate the new buffer and set it's elements to zero.

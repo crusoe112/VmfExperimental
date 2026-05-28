@@ -34,6 +34,7 @@
 #include <random>
 #include <algorithm>
 #include <variant>
+#include <limits>
 
 using namespace vmf;
 using Byte = uint8_t;
@@ -63,7 +64,15 @@ Module* RadamsaAsciiBadMutator::build(std::string name)
  */
 void RadamsaAsciiBadMutator::init(ConfigInterface& config)
 {
+    /*
+     * Cap comes from the configuration; 0 disables the cap.
+     */
 
+    const int configured = config.getIntParam(getModuleName(), "maxNewlineInsertions",
+                                              static_cast<int>(m_maxNewlineInsertions));
+    m_maxNewlineInsertions = (configured == 0)
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(configured);
 }
 
 /**
@@ -128,14 +137,14 @@ public:
         return Text{d};
     }
 
-    void mutate(VmfRand* rand) {
+    void mutate(VmfRand* rand, size_t maxNewlineInsertions) {
         vector<Byte>* targetData;
         if (vector<Byte>* p = get_if<vector<Byte>>(&value)) {
             targetData = p;
         } else {
             targetData = &get<Delimited>(value).data;
         }
-        mutateTextData(*targetData, rand);
+        mutateTextData(*targetData, rand, maxNewlineInsertions);
 
         return;
     }
@@ -193,7 +202,7 @@ private:
         return out;
     }
 
-    void mutateTextData(vector<Byte>& data, VmfRand* rand) {
+    void mutateTextData(vector<Byte>& data, VmfRand* rand, size_t maxNewlineInsertions) {
         size_t byteIndex = rand->randBetween(0, int(data.size()));
         int mutationType = rand->randBetween(0, 2);
         switch (mutationType) {
@@ -227,6 +236,12 @@ private:
                     case 9: newlineCount = 65536; break;
                     default: newlineCount = rand->randBetween(0, 1023); break;
                 }
+                /*
+                 *	Clamp the per-call newline-insertion count against the configurable budget so the case-9 newline-flood case stays bounded under GA-feedback iteration.
+                 */
+
+                // Cap insertions so per-call growth stays within `m_maxNewlineInsertions`.
+                if (newlineCount > maxNewlineInsertions) newlineCount = maxNewlineInsertions;
                 data.insert(data.begin() + byteIndex, newlineCount, Byte('\n'));
                 break;
             }
@@ -264,7 +279,7 @@ public:
         return Ascii{out};
     }
 
-    void mutate(VmfRand* rand) {
+    void mutate(VmfRand* rand, size_t maxNewlineInsertions) {
         vector<size_t> textChunkIndices;
         for (size_t i = 0; i < chunks.size(); ++i) {
             if (holds_alternative<vector<Text>>(chunks[i].value))
@@ -277,7 +292,7 @@ public:
             chunks[textChunkIndices[chunkIndex]].value
         );
         const size_t elemIndex = rand->randBetween(0, int(textElems.size() - 1));    
-        textElems[elemIndex].mutate(rand);
+        textElems[elemIndex].mutate(rand, maxNewlineInsertions);
 
         return;
     }
@@ -406,7 +421,7 @@ void RadamsaAsciiBadMutator::mutateTestCase(StorageModule& storage, StorageEntry
         return;
     }
 
-    parsedAscii->mutate(this->rand);
+    parsedAscii->mutate(this->rand, m_maxNewlineInsertions);
     vector<Byte> mutatedBytes = parsedAscii->unlex();
 
     const size_t newBufferSize{mutatedBytes.size() + 1}; // +1 to implicitly append a null terminator

@@ -53,5 +53,8 @@ class RadamsaRepeatLineMutator: public MutatorModule, public RadamsaLineMutatorB
 
     private:
         VmfRand* rand = VmfRand::getInstance();
+
+        // Per-call upper bound on `lineData.Size * numberOfRandomLineRepetitions` bytes added to the output buffer. Default 16777216 (16 MiB). Set the `maxBufferGrowthBytes` config key to override; 0 disables the cap.
+        size_t m_maxBufferGrowthBytes{16777216u};
 };
 }

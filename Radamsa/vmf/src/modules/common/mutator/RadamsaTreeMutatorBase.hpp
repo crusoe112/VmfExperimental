@@ -31,6 +31,8 @@
 #pragma once
 
 #include <stack>
+#include <optional>
+#include <limits>
 #include "RadamsaMutatorBase.hpp"
 #include "RuntimeException.hpp"
 #include "VmfRand.hpp"
@@ -72,17 +74,16 @@ public:
             return;
         }
 
-        Node* deepCopy(Node* newParent = nullptr) const {
-            // Create copy of self and children, but as separate objects, and attach to newParent
-            
-            Node* selfCopy = new Node(this->value, newParent);
-            for(Node* child : this->children) {
-                selfCopy->children.push_back(child->deepCopy(selfCopy));
+        Node* deepCopy(Node* newParent = nullptr) const
+        {
+            auto selfCopy = std::make_unique<Node>(this->value, newParent);
+            for (Node* child : this->children)
+            {
+                std::unique_ptr<Node> childCopy{child->deepCopy(selfCopy.get())};
+                selfCopy->children.push_back(childCopy.get());
+                childCopy.release();
             }
-
-            // if (newParent) newParent->children.push_back(selfCopy);
-
-            return selfCopy;
+            return selfCopy.release();
         }
     };
 
@@ -170,8 +171,30 @@ public:
     public:
         Node* root = nullptr;
 
-        Tree() {};
-        Tree(string treeStr) { buildTree(treeStr); }
+        Tree() = default;
+
+        /*
+         *	Tree construction goes through the noexcept tryBuild factory. The throwing constructor form is deleted: a constructor that throws after attaching Nodes under root would leak those Nodes, since C++ does not run the class destructor for an object whose constructor threw.
+         */
+
+        // The throwing constructor form is removed. Use Tree::tryBuild instead.
+        Tree(string const&) = delete;
+
+        // Builds a Tree from `treeStr`. Returns std::nullopt on any parse failure. Never throws. On parse failure the partially-built Tree's destructor runs before the optional resets, so no Node is leaked.
+        [[nodiscard]] static std::optional<Tree> tryBuild(string const& treeStr) noexcept
+        {
+            std::optional<Tree> result;
+            try
+            {
+                result.emplace();
+                result->buildTree(treeStr);
+            }
+            catch (...)
+            {
+                result.reset();
+            }
+            return result;
+        }
         
         // deleting copy constructor and copy assignment to avoid shallow copies
         Tree(const Tree&) = delete;
@@ -236,12 +259,14 @@ public:
             return nullptr;
         }
 
-        Node* insertNode(string value, Node* parent = nullptr) {
-            // Insert a new node as a child of "parent"
-
-            Node* newNode = new Node(value, parent);
-            if(parent) parent->children.push_back(newNode);
-            return newNode;
+        Node* insertNode(string value, Node* parent = nullptr)
+        {
+            auto newNode = std::make_unique<Node>(value, parent);
+            if (parent)
+            {
+                parent->children.push_back(newNode.get());
+            }
+            return newNode.release();
         }
 
         Node* duplicateNode(Node* original, Node* newParent) {
@@ -260,7 +285,10 @@ public:
             Node* duplicate = insertNode(original->value, newParent);
 
             for(Node* child : original->children) {
-                duplicate->children.push_back(duplicateNode(child, duplicate));
+                /*
+                 *	duplicateNode attaches the new child via insertNode internally, so the recursive call alone is sufficient. Discard the return value; an outer push_back here would be a second attach of the same pointer and double-delete on Tree teardown.
+                 */
+                duplicateNode(child, duplicate);
             }
 
             return duplicate;
@@ -317,27 +345,50 @@ public:
             delete n;
         }
     
-        void repeatPath(Node* parent, size_t childIndex, size_t numReps) {
-            // Replace a child of "parent" with recursive copies of "parent"
+        /*
+         *	Iterative form. Each iteration deep-copies the subtree rooted at `parent` and attaches the copy as a new child, so live-tree size grows by exactly `(countNodes(parent) - countNodes(parent->children[childIndex]))` nodes per iteration. The structural invariant of the iterative form (parentCopy at iteration i is a deep copy of the parentCopy planted at iteration i-1, which is structurally identical to the original `parent`) keeps both K = countNodes(parent) and S = countNodes(parent->children[childIndex]) constant across all iterations of a single call, so the total node growth is `effectiveNumReps * (K - S)`. The cap is therefore computed once at entry by dividing the remaining node budget by the per-iteration delta, rather than measured incrementally after each iteration.
+         */
 
-            if (numReps <= 0) return;
-
+        // Replaces parent->children[childIndex] with successive deep copies of `parent`. Loops up to `numReps` times, further bounded by `maxTotalNodes` so the live tree never exceeds that node count. The default `maxTotalNodes` of `std::numeric_limits<size_t>::max()` disables the adaptive cap and runs the full `numReps` iterations. When the current tree already exceeds the budget no iterations are performed.
+        void repeatPath(Node* parent, size_t childIndex, size_t numReps,
+                        size_t maxTotalNodes = std::numeric_limits<size_t>::max())
+        {
             if (parent == nullptr) throw RuntimeException{"Node to be repeated must not be nullptr", RuntimeException::USAGE_ERROR};
             if (childIndex >= parent->children.size()) throw RuntimeException{"childIndex is out of bounds", RuntimeException::INDEX_OUT_OF_RANGE};
 
-            // custom delete here because we want to preserve the child's entry in parent->children
-            Node* parentCopy = parent->deepCopy(parent);
-            Node* toReplace = parent->children[childIndex];
-            std::vector<Node*> childrenCopy = toReplace->children;
-            for(Node* child : childrenCopy) {
-                this->deleteNode(child);
+            /*
+             *	Compute the per-iteration node delta and the current tree size once. These are loop invariants for the iterative form, so a single division yields the maximum number of iterations that fit under the node budget.
+             */
+            const size_t kSize = countNodes(parent);
+            const size_t sSize = countNodes(parent->children[childIndex]);
+            const size_t deltaPerIter = (kSize > sSize) ? (kSize - sSize) : 0u;
+            const size_t currentSize = countNodes(this->root);
+
+            size_t effectiveNumReps = numReps;
+            if (deltaPerIter > 0u && maxTotalNodes != std::numeric_limits<size_t>::max())
+            {
+                const size_t budget = (maxTotalNodes > currentSize) ? (maxTotalNodes - currentSize) : 0u;
+                const size_t fittingIters = budget / deltaPerIter;
+                effectiveNumReps = std::min(numReps, fittingIters);
             }
-            delete toReplace;
 
-            parent->children[childIndex] = parentCopy;
+            Node* current = parent;
+            for (size_t i = 0; i < effectiveNumReps; ++i)
+            {
+                if (childIndex >= current->children.size()) break;
 
-            this->repeatPath(parent->children[childIndex], childIndex, numReps - 1);
-            return;
+                Node* parentCopy = current->deepCopy(current);
+                Node* toReplace = current->children[childIndex];
+                std::vector<Node*> childrenCopy = toReplace->children;
+                for (Node* child : childrenCopy)
+                {
+                    this->deleteNode(child);
+                }
+                delete toReplace;
+
+                current->children[childIndex] = parentCopy;
+                current = parentCopy;
+            }
         }
     };
 };

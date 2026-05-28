@@ -33,11 +33,13 @@
 #include "RuntimeException.hpp"
 #include <random>
 #include <algorithm>
+#include <limits>
 
 using namespace vmf;
 
 #include "ModuleFactory.hpp"
 REGISTER_MODULE(RadamsaRepeatPathMutator);
+
 
 /**
  * @brief Builder method to support the ModuleFactory
@@ -56,7 +58,21 @@ Module* RadamsaRepeatPathMutator::build(std::string name)
  */
 void RadamsaRepeatPathMutator::init(ConfigInterface& config)
 {
+    /*
+     *	Two independent caps govern repeatPath growth: - maxPathRepetitions: a fixed cap on the iteration count. 0 disables this cap. - maxRepeatPathNodes: an adaptive cap on the resulting live-tree node count, applied inside Tree::repeatPath via its maxTotalNodes parameter. 0 disables this cap. The default enables the adaptive node cap with no fixed iteration cap.
+     */
 
+    const int repsConfigured = config.getIntParam(getModuleName(), "maxPathRepetitions",
+                                                  static_cast<int>(m_maxPathRepetitions));
+    m_maxPathRepetitions = (repsConfigured == 0)
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(repsConfigured);
+
+    const int nodesConfigured = config.getIntParam(getModuleName(), "maxRepeatPathNodes",
+                                                   static_cast<int>(m_maxRepeatPathNodes));
+    m_maxRepeatPathNodes = (nodesConfigured == 0)
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(nodesConfigured);
 }
 
 /**
@@ -105,7 +121,7 @@ void RadamsaRepeatPathMutator::mutateTestCase(StorageModule& storage, StorageEnt
         originalBuffer = baseEntry->getBufferPointer(testCaseKey);
         originalSize = baseEntry->getBufferSize(testCaseKey);
     }
-    catch(const RuntimeException e)
+    catch (const RuntimeException& e)
     {
         // Buffer not allocated
         return;
@@ -132,7 +148,16 @@ void RadamsaRepeatPathMutator::mutateTestCase(StorageModule& storage, StorageEnt
     }
 
     const std::string treeStr(originalBuffer, originalSize);
-    Tree tr(treeStr);
+    /*
+     *	Build the tree via the noexcept tryBuild factory; fall back to CopyBufferAsIs when the input does not parse as a tree.
+     */
+    auto maybeTree = Tree::tryBuild(treeStr);
+    if (!maybeTree)
+    {
+        CopyBufferAsIs(baseEntry, newEntry, testCaseKey);
+        return;
+    }
+    Tree& tr = *maybeTree;
 
     size_t numNodes = tr.countNodes(tr.root);
     // Check if tree has minimum required number of nodes
@@ -153,9 +178,16 @@ void RadamsaRepeatPathMutator::mutateTestCase(StorageModule& storage, StorageEnt
 
     upper = static_cast<unsigned long>(parent->children.size() - 1);
     size_t childIndex{static_cast<size_t>(this->rand->randBetween(lower, upper))};
+    /*
+     * Repetition count comes from GetRandomRepetitionLength. Two composable caps then bound the work: the fixed `m_maxPathRepetitions` cap clamps the iteration count up front, and the adaptive `m_maxRepeatPathNodes` cap is forwarded to `repeatPath`, which converts it into an effective iteration count from the per-iteration node delta.
+     */
     size_t numReps = this->GetRandomRepetitionLength(this->rand);
+    if (m_maxPathRepetitions != std::numeric_limits<size_t>::max())
+    {
+        numReps = std::min(numReps, m_maxPathRepetitions);
+    }
 
-    tr.repeatPath(parent, childIndex, numReps);
+    tr.repeatPath(parent, childIndex, numReps, m_maxRepeatPathNodes);
 
     const string modTreeStr = tr.toString(tr.root);
     const size_t newBufferSize{modTreeStr.length() + 1}; // +1 to implicitly append a null terminator
